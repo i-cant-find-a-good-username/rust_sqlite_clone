@@ -54,7 +54,7 @@
           </layout>
          </item>
          <item>
-          <layout class="QVBoxLayout" name="current_result" stretch="">
+          <layout class="QVBoxLayout" name="current_result">
            <property name="spacing">
             <number>0</number>
            </property>
@@ -63,7 +63,182 @@
         </layout>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="grid"/>
+        <layout class="QVBoxLayout" name="grid" stretch="1,5">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <property name="leftMargin">
+            <number>20</number>
+           </property>
+           <property name="rightMargin">
+            <number>20</number>
+           </property>
+           <item>
+            <widget class="QComboBox" name="comboBox_2">
+             <item>
+              <property name="text">
+               <string>trh r</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>htr h</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string> r</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>th </string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>rt</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>h </string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>rt</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>h </string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>r t</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>h r</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>th</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>to</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="comboBox"/>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton">
+             <property name="text">
+              <string>PushButton</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>0 radian = 0 degree</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QGridLayout" name="gridLayout">
+           <item row="0" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <item>
+              <layout class="QGridLayout" name="gridLayout_2">
+               <item row="2" column="0">
+                <widget class="QPushButton" name="pushButton_6">
+                 <property name="text">
+                  <string>PushButton</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0">
+                <widget class="QPushButton" name="pushButton_4">
+                 <property name="text">
+                  <string>PushButton</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QPushButton" name="pushButton_3">
+                 <property name="text">
+                  <string>PushButton</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QPushButton" name="pushButton_7">
+                 <property name="text">
+                  <string>PushButton</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="0">
+                <widget class="QPushButton" name="pushButton_2">
+                 <property name="text">
+                  <string>PushButton</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QPushButton" name="pushButton_5">
+                 <property name="text">
+                  <string>PushButton</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="3">
+                <widget class="QPushButton" name="pushButton_9">
+                 <property name="text">
+                  <string>PushButton</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="2">
+                <widget class="QPushButton" name="pushButton_8">
+                 <property name="text">
+                  <string>PushButton</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="4">
+                <widget class="QPushButton" name="pushButton_10">
+                 <property name="text">
+                  <string>PushButton</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QGridLayout" name="gridLayout_4"/>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+        </layout>
        </item>
       </layout>
      </item>
