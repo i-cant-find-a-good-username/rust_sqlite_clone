@@ -16,10 +16,6 @@ public:
     ~MainWindow();
 
 
-private slots:
-    void test_func();
-
-
 private:
     Ui::MainWindow *ui;
 };
