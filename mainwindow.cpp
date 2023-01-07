@@ -6,10 +6,17 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(test_func()));
 }
+
 
 MainWindow::~MainWindow()
 {
     delete ui;
 }
 
+
+void MainWindow::test_func()
+{
+    ui->label->setText("fefzefz");
+}
