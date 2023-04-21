@@ -1,21 +1,57 @@
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, stdout, stdin, Write};
 
 fn main() -> io::Result<()> {
-    let stdin = io::stdin();
-    let mut lines = stdin.lock().lines();
 
-    while let Some(line) = lines.next() {
-        let length: i32 = line.unwrap().trim().parse().unwrap();
+    loop{
+        print_prompt();
+        
+        let stdin = stdin();
+        let mut lines = stdin.lock().lines();
+        
 
-        for _ in 0..length {
-            let line = lines
-                .next()
-                .expect("there was no next line")
-                .expect("the line could not be read");
+        let mut query: String = String::new();
 
-            println!("{}", line);
+        while let Some(line) = lines.next() {
+            match line {
+                Ok(line) => {
+                    match line.chars().last() {
+                        Some(last_char) => {
+                            query.push_str(&line);
+                            if last_char == ';' {
+                                println!("{}", query);
+                                proccess(query);
+                                query = String::new();
+                                print_prompt();
+                            }
+                        }
+                        None => {
+                            println!("line not have any chars");
+                        }
+                    }
+                    
+                }
+                Err(err) => {
+                    println!("line not read");
+                }
+            }
         }
-    }
 
-    Ok(())
+    }
+    
 }
+
+
+
+
+
+
+fn print_prompt() {
+    print!("->");
+    stdout().flush().unwrap();
+}
+
+fn proccess(query: String){
+
+}
+
+
