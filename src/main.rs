@@ -1,5 +1,15 @@
 use std::io::{self, BufRead, stdout, stdin, Write};
 
+mod select;
+mod insert;
+mod update;
+mod delete;
+mod create;
+mod drop;
+
+
+
+
 fn main() -> io::Result<()> {
 
     loop{
@@ -63,7 +73,23 @@ fn proccess(query: String){
         }else{
             println!("unknown command {:?} ", query);
         }
+    }else{
+        let statement_type: &str = query.split(" ").next().unwrap();
+        match statement_type {
+            "select" => select::select(query),
+            "insert" => insert::insert(query),
+            "update" => update::update(query),
+            "delete" => delete::delete(query),
+            "create" => create::create(query),
+            "drop"   => drop::drop(query),
+            _ => println!("unknown command {:?} ", query),
+        }
     }
 }
+
+
+
+
+
 
 
