@@ -17,9 +17,10 @@ fn main() -> io::Result<()> {
                     match line.chars().last() {
                         Some(last_char) => {
                             query.push_str(&line);
-                            if last_char == ';' {
-                                println!("{}", query);
-                                proccess(query);
+                            query.push_str(" ");
+
+                            if last_char == ';' || &line[..1] == "." {
+                                proccess(query.trim().to_string());
                                 query = String::new();
                                 print_prompt();
                             }
@@ -28,7 +29,6 @@ fn main() -> io::Result<()> {
                             println!("line not have any chars");
                         }
                     }
-                    
                 }
                 Err(err) => {
                     println!("line not read");
@@ -51,7 +51,19 @@ fn print_prompt() {
 }
 
 fn proccess(query: String){
-
+    if &query[..1] == "." {
+        match query.as_str(){
+            ".exit" => std::process::exit(0),
+            ".databases" => println!("databases"),
+            ".tables" => println!("tables"),
+            _ => println!("unknown command {:?} ", query),
+        } 
+        if &query == ".exit" {
+            std::process::exit(0);
+        }else{
+            println!("unknown command {:?} ", query);
+        }
+    }
 }
 
 
