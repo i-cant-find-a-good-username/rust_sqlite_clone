@@ -10,6 +10,41 @@ mod drop;
 
 
 
+
+
+
+fn print_prompt() {
+    print!("->");
+    stdout().flush().unwrap();
+}
+
+fn proccess(query: String){
+    if &query[..1] == "." {
+        match query.as_str(){
+            ".exit" => std::process::exit(0),
+            ".databases" => println!("databases"),
+            ".tables" => println!("tables"),
+            _ => println!("unknown command {:?} ", query),
+        } 
+    }else{
+        let statement_type: &str = query.split(" ").next().unwrap();
+        match statement_type {
+            "select" => select::select(query),
+            "insert" => insert::insert(query),
+            "update" => update::update(query),
+            "delete" => delete::delete(query),
+            "create" => create::create(query),
+            "drop"   => drop::drop(query),
+            _ => println!("unknown command {:?} ", query),
+        }
+    }
+}
+
+
+
+
+
+
 fn main() -> io::Result<()> {
 
     loop{
@@ -52,40 +87,6 @@ fn main() -> io::Result<()> {
 
 
 
-
-
-
-fn print_prompt() {
-    print!("->");
-    stdout().flush().unwrap();
-}
-
-fn proccess(query: String){
-    if &query[..1] == "." {
-        match query.as_str(){
-            ".exit" => std::process::exit(0),
-            ".databases" => println!("databases"),
-            ".tables" => println!("tables"),
-            _ => println!("unknown command {:?} ", query),
-        } 
-        if &query == ".exit" {
-            std::process::exit(0);
-        }else{
-            println!("unknown command {:?} ", query);
-        }
-    }else{
-        let statement_type: &str = query.split(" ").next().unwrap();
-        match statement_type {
-            "select" => select::select(query),
-            "insert" => insert::insert(query),
-            "update" => update::update(query),
-            "delete" => delete::delete(query),
-            "create" => create::create(query),
-            "drop"   => drop::drop(query),
-            _ => println!("unknown command {:?} ", query),
-        }
-    }
-}
 
 
 
