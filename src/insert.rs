@@ -63,11 +63,14 @@ fn prepare(query: &str) -> (bool, &str) {
 
 
 fn execute (query: &str, table: &mut Table) {
+    let parts = query.split(" ").collect::<Vec<&str>>();
+
     let new_user: User = User{
-        id: 5,
-        username: "String".to_string(),
-        email: "String".to_string(),
+        id:  parts.get(1).unwrap().parse::<u64>().unwrap(),
+        username: parts.get(2).unwrap().to_string(),
+        email: parts.get(3).unwrap().to_string(),
     };
+    
     table.add_row();
     table.insert_row(new_user);
     println!("table rows  {} ", table.rows_number);

@@ -11,6 +11,7 @@ mod drop;
 
 
 mod table;
+mod user;
 use table::Table;
 
 
