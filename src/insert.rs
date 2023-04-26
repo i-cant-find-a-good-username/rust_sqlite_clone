@@ -1,33 +1,11 @@
 use std::mem::{ size_of_val, size_of };
 
 
-const USERNAME_SIZE: u64 = 255;
-const EMAIL_SIZE: u64 = 255;
-const EMPTY_STRING: String = String::new();
-
-
-const PAGE_SIZE: u64 = 4096;
-const TABLE_MAX_PAGE: u64 = 100;
-const ROW_SIZE: u64 = size_of::<u64>() as u64;
-const ROWS_PER_PAGE: u64 = PAGE_SIZE / ROW_SIZE;
-const MAX_ROWS_PER_PAGE: u64 = 4096;
-
-struct Table {
-    rows_number: u64,
-    pages: [String; TABLE_MAX_PAGE as usize],
-}
+use crate::table::Table;
+use crate::user::User;
 
 
 
-
-
-
-
-struct User {
-    id: u64,
-    username: String,
-    email: String,
-}
 
 
 
@@ -84,10 +62,15 @@ fn prepare(query: &str) -> (bool, &str) {
 
 
 
-fn execute<'a>(query: &'a str, table: &'a mut Table) -> &'a mut Table {
+fn execute (query: &str, table: &mut Table) {
+    let new_user: User = User{
+        id: 5,
+        username: "String".to_string(),
+        email: "String".to_string(),
+    };
+    table.add_row();
+    table.insert_row(new_user);
     println!("table rows  {} ", table.rows_number);
-    table.rows_number+=1;
-    table
 }
 
 
@@ -97,18 +80,15 @@ insert 40000000000000000 emanlemaabvealineiam justarandomdudemanleabvealinejusta
 */
 
 
-pub fn insert (query: String) {
+pub fn insert (query: String, table: &mut Table) {
 
     
-    let mut table: Table = Table{
-        rows_number: 0,
-        pages: [EMPTY_STRING; 100],
-    };
+
 
     let result = prepare(&query);
     if result.0 {
         println!("query is correct and to bee exuceted ");
-        let mm = execute(&query, &mut table);
+        let mm = execute(&query, table);
     }else{
         println!("error occured: {}", result.1);
     }

@@ -1,11 +1,18 @@
 use std::io::{self, BufRead, stdout, stdin, Write};
 
+
+
 mod select;
 mod insert;
 mod update;
 mod delete;
 mod create;
 mod drop;
+
+
+mod table;
+use table::Table;
+
 
 
 
@@ -18,7 +25,7 @@ fn print_prompt() {
     stdout().flush().unwrap();
 }
 
-fn proccess(query: String){
+fn proccess(query: String, table: &mut Table){
     if &query[..1] == "." {
         match query.as_str(){
             ".exit" => std::process::exit(0),
@@ -30,7 +37,7 @@ fn proccess(query: String){
         let statement_type: &str = query.split(" ").next().unwrap();
         match statement_type {
             "select" => select::select(query),
-            "insert" => insert::insert(query),
+            "insert" => insert::insert(query, table),
             "update" => update::update(query),
             "delete" => delete::delete(query),
             "create" => create::create(query),
@@ -46,6 +53,8 @@ fn proccess(query: String){
 
 
 fn main() -> io::Result<()> {
+    let mut table: Table = Table::new();
+
 
     loop{
         print_prompt();
@@ -65,7 +74,7 @@ fn main() -> io::Result<()> {
                             query.push_str(" ");
 
                             if last_char == ';' || &line[..1] == "." {
-                                proccess(query.trim().to_string());
+                                proccess(query.trim().to_string(), &mut table);
                                 query = String::new();
                                 print_prompt();
                             }
