@@ -79,7 +79,7 @@ fn execute (query: &str, table: &mut Table) {
 
 
 /*
-insert 40000000000000000 emanlemaabvealineiam justarandomdudemanleabvealinejustarandomdudemanleabvealinejustarandomdudemanleabvealinejustarandomdudemanleabvealinejustarandomdudemanleabvealinejustarandomdudemanleabvealinejustarandomdudemanleabvealinejustarandomdudemanleabvealineydzadazdazdazertyuiodd;
+insert 4000000 emanlemaabvealineiam zertyuiodd;
 */
 
 
