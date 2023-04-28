@@ -7,12 +7,10 @@ use rustyline::validate::Validator;
 use rustyline::validate::{ValidationContext, ValidationResult};
 use rustyline::{CompletionType, Config, Context, EditMode};
 use rustyline_derive::{Completer, Helper};
-use rustyline::config::OutputStreamType;
 
 
 #[derive(Helper, Completer)]
 pub struct REPLHelper {
-    // pub validator: MatchingBracketValidator,
     pub colored_prompt: String,
     pub hinter: HistoryHinter,
     pub highlighter: MatchingBracketHighlighter,
@@ -20,7 +18,6 @@ pub struct REPLHelper {
 
 
 
-// Implementing the Default trait to give our struct a default value
 impl Default for REPLHelper {
     fn default() -> Self {
         Self {
@@ -34,28 +31,16 @@ impl Default for REPLHelper {
 
 impl Hinter for REPLHelper {
     type Hint = String;
-
-    // Takes the currently edited line with the cursor position and returns the string that should be
-    // displayed or None if no hint is available for the text the user currently typed
     fn hint(&self, line: &str, pos: usize, ctx: &Context<'_>) -> Option<String> {
         self.hinter.hint(line, pos, ctx)
     }
 }
 
 
-pub fn get_config() -> Config {
-    Config::builder()
-        .history_ignore_space(true)
-        .completion_type(CompletionType::List)
-        .edit_mode(EditMode::Emacs)
-        .output_stream(OutputStreamType::Stdout)
-        .build()
-}
+
 
 
 impl Validator for REPLHelper {
-    // Takes the currently edited input and returns a ValidationResult indicating whether it
-    // is valid or not along with an option message to display about the result.
     fn validate(&self, ctx: &mut ValidationContext) -> Result<ValidationResult, ReadlineError> {
         use ValidationResult::{Incomplete, /*Invalid,*/ Valid};
         let input = ctx.input();
@@ -72,7 +57,6 @@ impl Validator for REPLHelper {
 
 
 impl Highlighter for REPLHelper {
-    // Takes the prompt and returns the highlighted version (with ANSI color).
     fn highlight_prompt<'b, 's: 'b, 'p: 'b>(
         &'s self,
         prompt: &'p str,
@@ -85,19 +69,34 @@ impl Highlighter for REPLHelper {
         }
     }
 
-    // Takes the hint and returns the highlighted version (with ANSI color).
     fn highlight_hint<'h>(&self, hint: &'h str) -> Cow<'h, str> {
         Owned("\x1b[1m".to_owned() + hint + "\x1b[m")
     }
 
-    // Takes the currently edited line with the cursor position and returns the highlighted version (with ANSI color).
     fn highlight<'l>(&self, line: &'l str, pos: usize) -> Cow<'l, str> {
         self.highlighter.highlight(line, pos)
     }
 
-    // Tells if line needs to be highlighted when a specific char is typed or when cursor is moved under a specific char.
-    // Used to optimize refresh when a character is inserted or the cursor is moved.
     fn highlight_char(&self, line: &str, pos: usize) -> bool {
         self.highlighter.highlight_char(line, pos)
     }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+pub fn get_config() -> Config {
+    Config::builder()
+        .history_ignore_space(true)
+        .completion_type(CompletionType::List)
+        .edit_mode(EditMode::Emacs)
+        .build()
 }
