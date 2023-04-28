@@ -40,3 +40,15 @@ impl Database{
     }
     
 }
+
+
+//create table test(
+//    id integer primary key,
+//    username varchar(255),
+//    email varchar(255),
+//    password varchar(255),
+//    age integer,
+//    phone_number integer
+//)
+
+//insert into test (username ,email ,password ,age ,phone_number) values ('ilyes', 'ilyes@gmail.com', 'password', 22, 05555555);

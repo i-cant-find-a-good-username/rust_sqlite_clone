@@ -1,18 +1,25 @@
+use std::fmt::format;
+use std::{fs::File, collections::BTreeMap};
+use std::io::prelude::*;
+use rustyline::error::ReadlineError;
+use rustyline::Editor;
+
+
 mod rustyline_config;
 mod database;
 mod table;
 mod user;
-
-
-
-
-
+mod commands;
 
 
 use rustyline_config::{get_config, REPLHelper};
+use commands::{process_command, CommandType, meta_command::run_meta_command, sql_command::run_sql_command};
 
-use rustyline::error::ReadlineError;
-use rustyline::Editor;
+use crate::commands::sql_command::SQLCommand;
+
+//process_meta_command
+//process_sql_command
+
 
 fn main() -> rustyline::Result<()> {
 
@@ -35,9 +42,27 @@ fn main() -> rustyline::Result<()> {
         match readline {
             Ok(line) => {
                 repl.add_history_entry(line.as_str());
-                let gg = line.as_bytes();
-                let kk = format!("{:x?}", gg);
-                println!("{}", kk);
+                ;
+
+                match process_command(line) {
+                    CommandType::TypeMeta(command) => {
+                        match run_meta_command(command) {
+                            Ok(result) => println!("{}", result),
+                            Err(err) => println!("an error occured: {}", err)
+                        }
+                    },
+                    CommandType::TypeSQL(command) => {
+                        match command {
+                            SQLCommand::Invalid(err) => println!("an error occured: {}", err),
+                            _ => {
+                                match run_sql_command(command) {
+                                    Ok(result) => println!("{}", result),
+                                    Err(err) => println!("an error occured: {}", err)
+                                }
+                            }
+                        }
+                    },
+                };
             },
             Err(ReadlineError::Interrupted) => {
                 println!("CTRL-C");
