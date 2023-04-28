@@ -10,6 +10,8 @@ mod create;
 mod drop;
 
 
+mod rustyline_config;
+mod database;
 mod table;
 mod user;
 use table::Table;
@@ -102,21 +104,28 @@ fn proccess(query: String, table: &mut Table){
 
 
 
+use rustyline_config::{get_config, REPLHelper};
 
 use rustyline::error::ReadlineError;
-use rustyline::{DefaultEditor, Result};
+use rustyline::Editor;
 
-fn main() -> Result<()> {
-    // `()` can be used when no completer is required
-    let mut rl = DefaultEditor::new()?;
-    if rl.load_history("history.txt").is_err() {
+fn main() -> rustyline::Result<()> {
+
+    //let mut rl = DefaultEditor::new()?;
+    let config = get_config();
+    let helper = REPLHelper::default();
+    let mut repl = Editor::with_config(config);
+    repl.set_helper(Some(helper));
+
+    if repl.load_history("history.txt").is_err() {
         println!("No previous history.");
     }
+
     loop {
-        let readline = rl.readline(">> ");
+        let readline = repl.readline(">> ");
         match readline {
             Ok(line) => {
-                rl.add_history_entry(line.as_str());
+                repl.add_history_entry(line.as_str());
                 println!("Line: {}", line);
             },
             Err(ReadlineError::Interrupted) => {
@@ -133,7 +142,12 @@ fn main() -> Result<()> {
             }
         }
     }
+    
     #[cfg(feature = "with-file-history")]
     rl.save_history("history.txt");
+    
     Ok(())
+
 }
+
+
