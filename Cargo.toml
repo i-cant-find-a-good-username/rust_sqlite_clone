@@ -9,3 +9,15 @@ edition = "2021"
 rustyline = "11.0.0"
 prettytable-rs = "0.10.0"
 rustyline-derive = "0.8.0"
+
+
+
+
+# takes binary size from 4.6mb to 500kb
+
+#[profile.release]
+#opt-level = 'z'     # Optimize for size
+#lto = true          # Enable link-time optimization
+#codegen-units = 1   # Reduce number of codegen units to increase optimizations
+#panic = 'abort'     # Abort on panic
+#strip = true        # Strip symbols from binary*

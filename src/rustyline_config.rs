@@ -8,15 +8,12 @@ use rustyline::validate::{ValidationContext, ValidationResult};
 use rustyline::{CompletionType, Config, Context, EditMode};
 use rustyline_derive::{Completer, Helper};
 
-
 #[derive(Helper, Completer)]
 pub struct REPLHelper {
     pub colored_prompt: String,
     pub hinter: HistoryHinter,
     pub highlighter: MatchingBracketHighlighter,
 }
-
-
 
 impl Default for REPLHelper {
     fn default() -> Self {
@@ -28,17 +25,12 @@ impl Default for REPLHelper {
     }
 }
 
-
 impl Hinter for REPLHelper {
     type Hint = String;
     fn hint(&self, line: &str, pos: usize, ctx: &Context<'_>) -> Option<String> {
         self.hinter.hint(line, pos, ctx)
     }
 }
-
-
-
-
 
 impl Validator for REPLHelper {
     fn validate(&self, ctx: &mut ValidationContext) -> Result<ValidationResult, ReadlineError> {
@@ -54,7 +46,6 @@ impl Validator for REPLHelper {
         Ok(result)
     }
 }
-
 
 impl Highlighter for REPLHelper {
     fn highlight_prompt<'b, 's: 'b, 'p: 'b>(
@@ -81,17 +72,6 @@ impl Highlighter for REPLHelper {
         self.highlighter.highlight_char(line, pos)
     }
 }
-
-
-
-
-
-
-
-
-
-
-
 
 pub fn get_config() -> Config {
     Config::builder()
