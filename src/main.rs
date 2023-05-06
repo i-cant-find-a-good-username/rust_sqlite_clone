@@ -9,6 +9,9 @@ mod database;
 mod rustyline_config;
 mod table;
 mod user;
+mod parse;
+
+use parse::tokenizer;
 
 use commands::{
     meta_command::run_meta_command, process_command, sql_command::run_sql_command, CommandType,

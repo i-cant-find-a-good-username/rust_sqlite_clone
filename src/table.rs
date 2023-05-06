@@ -6,15 +6,16 @@ use std::{
 use crate::user::User;
 
 const EMPTY_STRING: String = String::new();
-
 const USERNAME_SIZE: u64 = 50;
 const EMAIL_SIZE: u64 = 20;
-
 const PAGE_SIZE: u64 = 4096;
 const TABLE_MAX_PAGE: u64 = 100;
 const ROW_SIZE: u64 = USERNAME_SIZE + EMAIL_SIZE + size_of::<u64>() as u64;
 const ROWS_PER_PAGE: u64 = PAGE_SIZE / ROW_SIZE;
 const MAX_ROWS_PER_PAGE: u64 = 4096;
+
+
+
 
 #[derive(Eq, PartialEq)]
 pub struct Table {
