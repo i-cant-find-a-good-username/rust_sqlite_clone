@@ -41,20 +41,19 @@ fn main() -> rustyline::Result<()> {
     loop {
         let readline = repl.readline(&p);
         match readline {
-            Ok(line) => {
-                repl.add_history_entry(line.as_str());
-
-                match process_command(line) {
-                    CommandType::TypeMeta(command) => match run_meta_command(command) {
-                        Ok(result) => println!("{}", result),
-                        Err(err) => println!("an error occured: {}", err),
-                    },
-                    CommandType::TypeSQL(command) => match command {
+            Ok(command) => {
+                repl.add_history_entry(command.as_str());
+                match process_command(&command) {
+                    CommandType::TypeSQL(cmd) => match cmd {
                         SQLCommand::Invalid(err) => println!("an error occured: {}", err),
                         _ => match run_sql_command(command) {
                             Ok(result) => println!("{}", result),
                             Err(err) => println!("an error occured: {}", err),
                         },
+                    },
+                    CommandType::TypeMeta(cmd) => match run_meta_command(cmd) {
+                        Ok(result) => println!("{}", result),
+                        Err(err) => println!("an error occured: {}", err),
                     },
                 };
             }

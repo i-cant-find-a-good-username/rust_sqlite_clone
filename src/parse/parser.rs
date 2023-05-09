@@ -1,12 +1,20 @@
 use crate::commands::sql_command;
-pub mod tokenizer;
+use super::tokenizer;
 
 
 
 
 
 
-pub fn parse(query: sql_command::SQLCommand) {
+pub fn parse(query: String) {
+    println!("start tokenize {:?}", query);
 
+
+    let mut new_tokenizer = tokenizer::Tokenizer::new(&query);
+    let tokens = new_tokenizer.tokenize();
+
+    
+
+    //let gg = tokenizer::tokenize();
 
 }

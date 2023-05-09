@@ -10,9 +10,9 @@ pub enum CommandType {
     TypeSQL(SQLCommand),
 }
 
-pub fn process_command(command: String) -> CommandType {
+pub fn process_command(command: &str) -> CommandType {
     match command.starts_with(".") {
-        true => CommandType::TypeMeta(MetaCommand::new(command)),
-        false => CommandType::TypeSQL(SQLCommand::new(command)),
+        true => CommandType::TypeMeta(MetaCommand::new(command.to_owned())),
+        false => CommandType::TypeSQL(SQLCommand::new(command.to_owned())),
     }
 }
