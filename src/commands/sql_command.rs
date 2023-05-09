@@ -1,4 +1,5 @@
-use 
+use crate::parse::parser;
+
 
 #[derive(Debug)]
 pub enum SQLCommand {
@@ -28,5 +29,6 @@ impl SQLCommand {
 
 pub fn run_sql_command(command: SQLCommand) -> Result<String, String> {
     //tokenize parse then execute the query
+    let parsed_query = parser::parse(command);
     Ok("zad".to_string())
 }

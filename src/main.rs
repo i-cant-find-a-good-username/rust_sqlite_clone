@@ -19,6 +19,7 @@ use commands::{
 use rustyline_config::{get_config, REPLHelper};
 
 use crate::commands::sql_command::SQLCommand;
+use crate::parse::parser;
 
 //process_meta_command
 //process_sql_command
