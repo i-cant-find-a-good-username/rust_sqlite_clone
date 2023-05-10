@@ -6,7 +6,7 @@ use super::tokenizer;
 
 
 
-pub fn parse(query: String) {
+pub fn parse(query: String) -> String {
     println!("start tokenize {:?}", query);
 
 
@@ -14,7 +14,7 @@ pub fn parse(query: String) {
     let tokens = new_tokenizer.tokenize();
 
     
-
+    String::from("heello")
     //let gg = tokenizer::tokenize();
 
 }
