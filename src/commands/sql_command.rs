@@ -31,5 +31,7 @@ pub fn run_sql_command(command: String) -> Result<String, String> {
     //tokenize parse then execute the query
     println!("start parse {:?}", command);
     let parsed_query = parser::parse(command);
+    println!("tokens{:?}", parsed_query);
+
     Ok("zad".to_string())
 }

@@ -128,6 +128,7 @@ pub struct Word{
     pub value: String,
     pub keyword: KeyWord
 }
+#[derive(Debug)]
 
 pub struct TokenizerError {
     pub message: String,
@@ -165,16 +166,20 @@ impl<'a> Tokenizer<'a> {
 
     pub fn tokenize(&mut self) -> Result<Vec<Token>, TokenizerError> {
         let mut peekable = self.query.chars().peekable();
+        let mut tokens: Vec<Token> = Vec::new();
+
 
         while let Some(token) = self.next_token(&mut peekable)? {
-            peekable.next();
-            println!("{:?}", token);
+        println!("tokens{:?}", token);
+
+            tokens.push(token);
         }
 
         
+        println!("tokens{:?}", tokens);
 
 
-        Ok(Vec::new())
+        Ok(tokens)
     }
 
     fn consume_and_return(&self, chars: &mut Peekable<Chars<'_>>, t: Token) -> Result<Option<Token>, TokenizerError> {
@@ -184,11 +189,35 @@ impl<'a> Tokenizer<'a> {
     fn tokenize_single_quote_string(&self, chars: &mut Peekable<Chars<'_>>) -> Result<Option<Token>, TokenizerError> {
         // keep iterating until you find '
         chars.next();
+        let mut text = String::from("");
+        
+        while let Some(&char) = chars.peek(){
+            if char == '\''{
+                break;
+            }else{
+                text.push(char);
+                chars.next();
+            }
+        }
         let text = String::from("hello there");
-        Ok(Some(Token::SingleQuotedString(String::from("hello there"))))
+        Ok(Some(Token::SingleQuotedString(text)))
 
     }
-    
+   
+    fn tokenize_word(&self, first_char: &char, chars: &mut Peekable<Chars<'_>>) -> String {
+        let mut s = first_char.to_string();
+        
+        while let Some(char) = chars.peek(){
+            if char == &' '{
+                break;
+            }else{
+                s.push(*char);
+                chars.next();
+            }
+        }
+        
+        s
+    }
     fn next_token (&self, chars: &mut Peekable<Chars<'_>>) -> Result<Option<Token>, TokenizerError>  {
         match chars.peek(){
             Some(char) => {
@@ -203,30 +232,66 @@ impl<'a> Tokenizer<'a> {
                     //'char' => Ok(Some(Token::Whitespace(Whitespace::Space))),
                     '\'' => self.tokenize_single_quote_string(chars),
                     ',' => self.consume_and_return(chars, Token::Comma),
-                    //'==' => self.consume_and_return(chars, Token::Comma),
-                    '=' => self.consume_and_return(chars, Token::Comma),
-                    //'!=' => self.consume_and_return(chars, Token::Comma),
-                    '<' => self.consume_and_return(chars, Token::Comma),
-                    '>' => self.consume_and_return(chars, Token::Comma),
-                    //'<=' => self.consume_and_return(chars, Token::Comma),
-                    //'>=' => self.consume_and_return(chars, Token::Comma),
-                    '+' => self.consume_and_return(chars, Token::Comma),
-                    '-' => self.consume_and_return(chars, Token::Comma),
-                    '*' => self.consume_and_return(chars, Token::Comma),
-                    '/' => self.consume_and_return(chars, Token::Comma),
-                    '%' => self.consume_and_return(chars, Token::Comma),
-                    '(' => self.consume_and_return(chars, Token::Comma),
-                    ')' => self.consume_and_return(chars, Token::Comma),
-                    '.' => self.consume_and_return(chars, Token::Comma),
-                    ';' => self.consume_and_return(chars, Token::Comma),
-                    '[' => self.consume_and_return(chars, Token::Comma),
-                    ']' => self.consume_and_return(chars, Token::Comma),
-                    '{' => self.consume_and_return(chars, Token::Comma),
-                    '}' => self.consume_and_return(chars, Token::Comma),
+                    '=' => {
+                        //self.consume_and_return(chars, Token::Eq)
+                        chars.next();
+                        match chars.peek(){
+                            Some('=') => {
+                                self.consume_and_return(chars, Token::DoubleEq)
+                            },
+                            _ => self.consume_and_return(chars, Token::Eq)
+                        }
+                    },
+                    '!' => {
+                        //self.consume_and_return(chars, Token::Eq)
+                        chars.next();
+                        match chars.peek(){
+                            Some('=') => {
+                                self.consume_and_return(chars, Token::Neq)
+                            },
+                            _ => self.consume_and_return(chars, Token::Char('!'))
+                        }
+                    },
+                    '<' => {
+                        chars.next();
+                        match chars.peek(){
+                            Some('=') => {
+                                self.consume_and_return(chars, Token::LtEq)
+                            },
+                            _ => self.consume_and_return(chars, Token::Lt)
+                        }
+                    },
+                    '>' => {
+                        chars.next();
+                        match chars.peek(){
+                            Some('=') => {
+                                self.consume_and_return(chars, Token::GtEq)
+                            },
+                            _ => self.consume_and_return(chars, Token::Gt)
+                        }
+                    },
+                    '+' => self.consume_and_return(chars, Token::Plus),
+                    '-' => self.consume_and_return(chars, Token::Minus),
+                    '*' => self.consume_and_return(chars, Token::Mul),
+                    '/' => self.consume_and_return(chars, Token::Div),
+                    '%' => self.consume_and_return(chars, Token::Mod),
+                    '(' => self.consume_and_return(chars, Token::LParen),
+                    ')' => self.consume_and_return(chars, Token::RParen),
+                    '.' => self.consume_and_return(chars, Token::Period),
+                    ';' => self.consume_and_return(chars, Token::SemiColon),
+                    '[' => self.consume_and_return(chars, Token::LBracket),
+                    ']' => self.consume_and_return(chars, Token::RBracket),
+                    '{' => self.consume_and_return(chars, Token::LBrace),
+                    '}' => self.consume_and_return(chars, Token::RBrace),
                     
 
 
-                    _ => Ok(None),
+                    _ => {
+                        chars.next();
+                        let word = self.tokenize_word(char ,chars);
+                        println!("{}", word);
+                        Ok(Some(Token::Char('f')))
+                    },
                 }
             }
             None => Ok(None)
