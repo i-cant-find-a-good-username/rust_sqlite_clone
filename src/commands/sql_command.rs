@@ -1,4 +1,4 @@
-use crate::parse::parser;
+use crate::parse::parser::{self, Parser};
 
 #[derive(Debug)]
 pub enum SQLCommand {
@@ -27,7 +27,7 @@ impl SQLCommand {
 }
 
 pub fn run_sql_command(command: String) -> Result<String, String> {
-    let parsed_query = parser::parse(command);
+    let parsed_query = Parser::parse(command);
 
-    Ok("zad".to_string())
+    Ok("Query Executed".to_string())
 }

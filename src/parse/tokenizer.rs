@@ -176,6 +176,7 @@ impl<'a> Tokenizer<'a> {
             }
             tokens.push(token);
         }
+        tokens.push(Token::EOF);
 
         //println!("tokens{:?}", tokens);
 
@@ -284,6 +285,7 @@ impl<'a> Tokenizer<'a> {
                 || char == &'\t'
                 || char == &','
                 || char == &'('
+                || char == &';'
             {
                 break;
             } else {
