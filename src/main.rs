@@ -6,10 +6,10 @@ use std::{collections::BTreeMap, fs::File};
 
 mod commands;
 mod database;
+mod parse;
 mod rustyline_config;
 mod table;
 mod user;
-mod parse;
 
 use parse::tokenizer;
 

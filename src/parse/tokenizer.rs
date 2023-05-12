@@ -1,4 +1,4 @@
-use std::{iter::Peekable, str::Chars, fmt};
+use std::{fmt, iter::Peekable, str::Chars};
 #[derive(Debug)]
 
 pub enum KeyWord {
@@ -13,6 +13,7 @@ pub enum KeyWord {
     From,
     Into,
     Values,
+    Default,
     And,
     Or,
     Not,
@@ -32,7 +33,7 @@ pub enum KeyWord {
     Min,
     NotNull,
     AutoIncrement,
-    NotAKeyword
+    NotAKeyword,
 }
 #[derive(Debug)]
 
@@ -66,9 +67,9 @@ pub enum Token {
 }
 
 #[derive(Debug)]
-pub struct Word{
+pub struct Word {
     pub value: String,
-    pub keyword: KeyWord
+    pub keyword: KeyWord,
 }
 
 #[derive(Debug)]
@@ -93,8 +94,6 @@ pub struct Tokenizer<'a> {
     line: u64,
     col: u64,
 }
-
-
 
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -130,8 +129,6 @@ impl fmt::Display for Token {
     }
 }
 
-
-
 impl fmt::Display for Whitespace {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -144,16 +141,13 @@ impl fmt::Display for Whitespace {
     }
 }
 
-
 impl fmt::Display for Word {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(&self.value)
     }
 }
 
-
 impl<'a> Tokenizer<'a> {
-    
     pub fn new(query: &'a str) -> Self {
         Self {
             query,
@@ -165,7 +159,6 @@ impl<'a> Tokenizer<'a> {
     pub fn tokenize(&mut self) -> Result<Vec<Token>, TokenizerError> {
         let mut peekable = self.query.chars().peekable();
         let mut tokens: Vec<Token> = Vec::new();
-
 
         while let Some(token) = self.next_token(&mut peekable)? {
             //println!("a token is ================> {:?}", token);
@@ -183,64 +176,52 @@ impl<'a> Tokenizer<'a> {
             }
             tokens.push(token);
         }
-        
+
         //println!("tokens{:?}", tokens);
 
         Ok(tokens)
     }
 
-
-    fn next_token (&self, chars: &mut Peekable<Chars<'_>>) -> Result<Option<Token>, TokenizerError>  {
-        match chars.peek(){
+    fn next_token(&self, chars: &mut Peekable<Chars<'_>>) -> Result<Option<Token>, TokenizerError> {
+        match chars.peek() {
             Some(char) => {
-                match char{
+                match char {
                     ' ' => self.consume_and_return(chars, Token::Whitespace(Whitespace::Space)),
                     '\t' => self.consume_and_return(chars, Token::Whitespace(Whitespace::Tab)),
                     '\n' => self.consume_and_return(chars, Token::Whitespace(Whitespace::Newline)),
                     '\r' => self.consume_and_return(chars, Token::Whitespace(Whitespace::Newline)),
-                    //'end of file' => Ok(Some(Token::Whitespace(Whitespace::Space))),
-                    //'word' => Ok(Some(Token::Whitespace(Whitespace::Space))),
-                    //'char' => Ok(Some(Token::Whitespace(Whitespace::Space))),
                     '\'' => self.tokenize_single_quote_string(chars),
                     ',' => self.consume_and_return(chars, Token::Comma),
                     '=' => {
                         //self.consume_and_return(chars, Token::Eq)
                         chars.next();
-                        match chars.peek(){
-                            Some('=') => {
-                                self.consume_and_return(chars, Token::DoubleEq)
-                            },
-                            _ => self.consume_and_return(chars, Token::Eq)
+                        match chars.peek() {
+                            Some('=') => self.consume_and_return(chars, Token::DoubleEq),
+                            _ => self.consume_and_return(chars, Token::Eq),
                         }
-                    },
+                    }
                     '!' => {
                         //self.consume_and_return(chars, Token::Eq)
                         chars.next();
-                        match chars.peek(){
-                            Some('=') => {
-                                self.consume_and_return(chars, Token::Neq)
-                            },
-                            _ => self.consume_and_return(chars, Token::Char('!'))
+                        match chars.peek() {
+                            Some('=') => self.consume_and_return(chars, Token::Neq),
+                            _ => self.consume_and_return(chars, Token::Char('!')),
                         }
-                    },
+                    }
                     '<' => {
                         chars.next();
-                        match chars.peek(){
-                            Some('=') => {
-                                self.consume_and_return(chars, Token::LtEq)
-                            },
-                            _ => self.consume_and_return(chars, Token::Lt)
+                        match chars.peek() {
+                            Some('=') => self.consume_and_return(chars, Token::LtEq),
+                            _ => self.consume_and_return(chars, Token::Lt),
                         }
-                    },
+                    }
                     '>' => {
                         chars.next();
-                        match chars.peek(){
-                            Some('=') => {
-                                self.consume_and_return(chars, Token::GtEq)
-                            },
-                            _ => self.consume_and_return(chars, Token::Gt)
+                        match chars.peek() {
+                            Some('=') => self.consume_and_return(chars, Token::GtEq),
+                            _ => self.consume_and_return(chars, Token::Gt),
                         }
-                    },
+                    }
                     '+' => self.consume_and_return(chars, Token::Plus),
                     '-' => self.consume_and_return(chars, Token::Minus),
                     '*' => self.consume_and_return(chars, Token::Mul),
@@ -257,86 +238,191 @@ impl<'a> Tokenizer<'a> {
                     _ => {
                         let word = self.tokenize_word(chars);
                         Ok(Some(Token::Word(word)))
-                    },
-                    
+                    }
                 }
             }
-            None => Ok(None)
+            None => Ok(None),
         }
-        
     }
 
-    fn consume_and_return(&self, chars: &mut Peekable<Chars<'_>>, t: Token) -> Result<Option<Token>, TokenizerError> {
+    fn consume_and_return(
+        &self,
+        chars: &mut Peekable<Chars<'_>>,
+        t: Token,
+    ) -> Result<Option<Token>, TokenizerError> {
         chars.next();
         Ok(Some(t))
     }
 
-    fn tokenize_single_quote_string(&self, chars: &mut Peekable<Chars<'_>>) -> Result<Option<Token>, TokenizerError> {
+    fn tokenize_single_quote_string(
+        &self,
+        chars: &mut Peekable<Chars<'_>>,
+    ) -> Result<Option<Token>, TokenizerError> {
         // keep iterating until you find '
         chars.next();
         let mut text = String::from("");
-        
-        while let Some(&char) = chars.peek(){
-            if char == '\''{
+
+        while let Some(&char) = chars.peek() {
+            if char == '\'' {
                 break;
-            }else{
+            } else {
                 text.push(char);
                 chars.next();
             }
         }
         let text = String::from("hello there");
         Ok(Some(Token::SingleQuotedString(text)))
-
     }
-   
+
     fn tokenize_word(&self, chars: &mut Peekable<Chars<'_>>) -> Word {
         let mut s = String::new();
-        
-        while let Some(char) = chars.peek(){
-            if char == &' ' || char == &'\n' || char == &'\r' || char == &'\t' || char == &',' || char == &'('{
+
+        while let Some(char) = chars.peek() {
+            if char == &' '
+                || char == &'\n'
+                || char == &'\r'
+                || char == &'\t'
+                || char == &','
+                || char == &'('
+            {
                 break;
-            }else{
+            } else {
                 s.push(*char);
                 chars.next();
             }
         }
 
         let word: Word = match s.as_str() {
-            "select" => Word{value:s, keyword: KeyWord::Select},
-            "insert" => Word{value:s, keyword: KeyWord::Insert},
-            "update" => Word{value:s, keyword: KeyWord::Update},
-            "delete" => Word{value:s, keyword: KeyWord::Delete},
-            "create" => Word{value:s, keyword: KeyWord::Create},
-            "describe" => Word{value:s, keyword: KeyWord::Describe},
-            "table" => Word{value:s, keyword: KeyWord::Table},
-            "database" => Word{value:s, keyword: KeyWord::Database},
-            "from" => Word{value:s, keyword: KeyWord::From},
-            "into" => Word{value:s, keyword: KeyWord::Into},
-            "values" => Word{value:s, keyword: KeyWord::Values},
-            "and" => Word{value:s, keyword: KeyWord::And},
-            "or" => Word{value:s, keyword: KeyWord::Or},
-            "not" => Word{value:s, keyword: KeyWord::Not},
-            "null" => Word{value:s, keyword: KeyWord::Null},
-            "integer" => Word{value:s, keyword: KeyWord::Integer},
-            "float" => Word{value:s, keyword: KeyWord::Float},
-            "text" => Word{value:s, keyword: KeyWord::Text},
-            "boolean" => Word{value:s, keyword: KeyWord::Boolean},
-            "drop" => Word{value:s, keyword: KeyWord::Drop},
-            "where" => Word{value:s, keyword: KeyWord::Where},
-            "set" => Word{value:s, keyword: KeyWord::Set},
-            "distinct" => Word{value:s, keyword: KeyWord::Distinct},
-            "all" => Word{value:s, keyword: KeyWord::All},
-            "avg" => Word{value:s, keyword: KeyWord::Avg},
-            "sum" => Word{value:s, keyword: KeyWord::Sum},
-            "max" => Word{value:s, keyword: KeyWord::Max},
-            "min" => Word{value:s, keyword: KeyWord::Min},
-            "not_null" => Word{value:s, keyword: KeyWord::NotNull},
-            "auto_increment" => Word{value:s, keyword: KeyWord::AutoIncrement},
-            _ => Word{value:s, keyword: KeyWord::NotAKeyword},
+            "select" => Word {
+                value: s,
+                keyword: KeyWord::Select,
+            },
+            "insert" => Word {
+                value: s,
+                keyword: KeyWord::Insert,
+            },
+            "update" => Word {
+                value: s,
+                keyword: KeyWord::Update,
+            },
+            "delete" => Word {
+                value: s,
+                keyword: KeyWord::Delete,
+            },
+            "create" => Word {
+                value: s,
+                keyword: KeyWord::Create,
+            },
+            "describe" => Word {
+                value: s,
+                keyword: KeyWord::Describe,
+            },
+            "table" => Word {
+                value: s,
+                keyword: KeyWord::Table,
+            },
+            "database" => Word {
+                value: s,
+                keyword: KeyWord::Database,
+            },
+            "from" => Word {
+                value: s,
+                keyword: KeyWord::From,
+            },
+            "into" => Word {
+                value: s,
+                keyword: KeyWord::Into,
+            },
+            "values" => Word {
+                value: s,
+                keyword: KeyWord::Values,
+            },
+            "default" => Word {
+                value: s,
+                keyword: KeyWord::Default,
+            },
+            "and" => Word {
+                value: s,
+                keyword: KeyWord::And,
+            },
+            "or" => Word {
+                value: s,
+                keyword: KeyWord::Or,
+            },
+            "not" => Word {
+                value: s,
+                keyword: KeyWord::Not,
+            },
+            "null" => Word {
+                value: s,
+                keyword: KeyWord::Null,
+            },
+            "integer" => Word {
+                value: s,
+                keyword: KeyWord::Integer,
+            },
+            "float" => Word {
+                value: s,
+                keyword: KeyWord::Float,
+            },
+            "text" => Word {
+                value: s,
+                keyword: KeyWord::Text,
+            },
+            "boolean" => Word {
+                value: s,
+                keyword: KeyWord::Boolean,
+            },
+            "drop" => Word {
+                value: s,
+                keyword: KeyWord::Drop,
+            },
+            "where" => Word {
+                value: s,
+                keyword: KeyWord::Where,
+            },
+            "set" => Word {
+                value: s,
+                keyword: KeyWord::Set,
+            },
+            "distinct" => Word {
+                value: s,
+                keyword: KeyWord::Distinct,
+            },
+            "all" => Word {
+                value: s,
+                keyword: KeyWord::All,
+            },
+            "avg" => Word {
+                value: s,
+                keyword: KeyWord::Avg,
+            },
+            "sum" => Word {
+                value: s,
+                keyword: KeyWord::Sum,
+            },
+            "max" => Word {
+                value: s,
+                keyword: KeyWord::Max,
+            },
+            "min" => Word {
+                value: s,
+                keyword: KeyWord::Min,
+            },
+            "not_null" => Word {
+                value: s,
+                keyword: KeyWord::NotNull,
+            },
+            "auto_increment" => Word {
+                value: s,
+                keyword: KeyWord::AutoIncrement,
+            },
+            _ => Word {
+                value: s,
+                keyword: KeyWord::NotAKeyword,
+            },
         };
 
         word
     }
-
-
 }

@@ -1,6 +1,5 @@
 use crate::parse::parser;
 
-
 #[derive(Debug)]
 pub enum SQLCommand {
     Insert(String),

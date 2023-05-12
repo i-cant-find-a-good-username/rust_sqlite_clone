@@ -14,9 +14,6 @@ const ROW_SIZE: u64 = USERNAME_SIZE + EMAIL_SIZE + size_of::<u64>() as u64;
 const ROWS_PER_PAGE: u64 = PAGE_SIZE / ROW_SIZE;
 const MAX_ROWS_PER_PAGE: u64 = 4096;
 
-
-
-
 #[derive(Eq, PartialEq)]
 pub struct Table {
     pub rows_number: u64,

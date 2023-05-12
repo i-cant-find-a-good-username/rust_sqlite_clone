@@ -1,86 +1,78 @@
-use crate::commands::sql_command;
 use super::tokenizer;
 
+pub struct ObjectName(String);
+
+pub struct ColumnDef {
+    pub name: String,
+    pub data_type: DataType,
+    pub options: Vec<ColumnOptionDef>,
+}
+
+pub struct Selection {
+    column: ColumnDef,
+    value: DataType, // changing type
+}
+
+pub struct Assignment {}
+
+// like not_null or auto_increment
+pub struct ColumnOptionDef {
+    pub name: Option<ObjectName>,
+    pub option: ColumnOption,
+}
+
+pub enum DataType {
+    Text(u32),    //lenght
+    Integer(u32), //lenght
+    Float(u32),   //lenght
+    Null,
+}
+
+pub enum ObjectType {
+    Table,
+}
+
+pub enum ColumnOption {
+    Null,
+    NotNull,
+    Default(),
+    Unique { is_primary: bool },
+    Check(Selection),
+}
+
 pub enum Statement {
-    Query(Box<Query>),
-    pub struct Query {
-        /// WITH (common table expressions, or CTEs)
-        pub with: Option<With>,
-        /// SELECT or UNION / EXCEPT / INTERSECT
-        pub body: SetExpr,
-        /// ORDER BY
-        pub order_by: Vec<OrderByExpr>,
-        /// `LIMIT { <N> | ALL }`
-        pub limit: Option<Expr>,
-        /// `OFFSET <N> [ { ROW | ROWS } ]`
-        pub offset: Option<Offset>,
-        /// `FETCH { FIRST | NEXT } <N> [ PERCENT ] { ROW | ROWS } | { ONLY | WITH TIES }`
-        pub fetch: Option<Fetch>,
-        /// `FOR { UPDATE | SHARE }`
-        pub lock: Option<LockType>,
-    }
-    
     Insert {
         into: bool,
         table_name: ObjectName,
-        columns: Vec<Ident>,
-        /// A SQL query that specifies what to insert
-        source: Box<Query>,
-        /// partitioned insert (Hive)
-        partitioned: Option<Vec<Expr>>,
-        /// Columns defined after PARTITION
-        after_columns: Vec<Ident>,
-        /// whether the insert has the table keyword (Hive)
+        columns: Vec<ObjectName>,
+        values: Vec<DataType>,
         table: bool,
-        on: Option<OnInsert>,
     },
     Update {
-        /// TABLE
-        table: TableWithJoins,
-        /// Column assignments
+        table: ObjectName,
         assignments: Vec<Assignment>,
-        /// Table which provide value to be set
-        from: Option<TableWithJoins>,
-        /// WHERE
-        selection: Option<Expr>,
+        from: Option<ObjectName>,
+        selection: Option<Selection>,
     },
     Delete {
         /// FROM
         table_name: ObjectName,
         /// WHERE
-        selection: Option<Expr>,
+        selection: Option<Selection>,
     },
     CreateTable {
         name: ObjectName,
         columns: Vec<ColumnDef>,
-        constraints: Vec<TableConstraint>,
-        hive_distribution: HiveDistributionStyle,
-        hive_formats: Option<HiveFormat>,
-        table_properties: Vec<SqlOption>,
-        with_options: Vec<SqlOption>,
-        file_format: Option<FileFormat>,
-        location: Option<String>,
-        query: Option<Box<Query>>,
-        without_rowid: bool,
-        like: Option<ObjectName>,
-        engine: Option<String>,
-        default_charset: Option<String>,
-        collation: Option<String>,
-        on_commit: Option<OnCommit>,
     },
     Drop {
-        object_type: ObjectType,
+        object_type: ObjectName,
         names: Vec<ObjectName>,
         cascade: bool,
     },
 }
 
-
-
-
 pub fn parse(query: String) -> Result<Vec<tokenizer::Token>, tokenizer::TokenizerError> {
     println!("start tokenize {:?}", query);
-
 
     let mut new_tokenizer = tokenizer::Tokenizer::new(&query);
     let tokens = new_tokenizer.tokenize();
@@ -90,5 +82,4 @@ pub fn parse(query: String) -> Result<Vec<tokenizer::Token>, tokenizer::Tokenize
 
     tokens
     //let gg = tokenizer::tokenize();
-
 }
