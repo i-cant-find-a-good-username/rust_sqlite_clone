@@ -13,11 +13,14 @@ pub struct Selection {
     value: DataType, // changing type
 }
 #[derive(Debug)]
-
-
 pub struct Clause {
     column: String,
     operation: Token,
+    value: String,
+}
+#[derive(Debug)]
+pub struct Allocation {
+    column: String,
     value: String,
 }
 #[derive(Debug)]
@@ -66,8 +69,8 @@ pub enum Statement {
     },
     Update {
         table: String,
-        Clauses: Vec<Clause>,
-        selection: Option<Clause>,
+        allocations: Vec<Allocation>,
+        clauses: Vec<Clause>,
     },
     Delete {
         table_name: String,
@@ -135,14 +138,15 @@ impl Parser /*<'a>*/ {
                     KeyWord::Update => Ok(self.update_statement()),
                     KeyWord::Delete => Ok(self.delete_statement()),
                     KeyWord::Create => Ok(self.create_statement()),
+                    KeyWord::Drop => Ok(self.drop_statement()),
                     _ => Err(ParserError{
-                        message: "no keyword".to_owned(),
+                        message: "no keyword".to_string(),
                         index: self.index
                     }),
                 }
             }
             _ => Err(ParserError{
-                message: "idk what the error".to_owned(),
+                message: "idk what the error".to_string(),
                 index: self.index
             }),
         }
@@ -184,19 +188,7 @@ impl Parser /*<'a>*/ {
         }
 
         // keyword
-        match &self.tokens[self.index]{
-            Token::Word(Word { keyword: KeyWord::From, .. }) => {
-                self.next_token();
-            },
-            _ => {
-                return Err(
-                    ParserError {
-                        message: "no from".to_owned(),
-                        index: self.index,
-                    }
-                )
-            }
-        }
+        self.confirm_keyword(KeyWord::From)?;
     
         let table_name: Result<String, ParserError> = match &mut self.tokens[self.index]{
             Token::Word(Word {keyword: KeyWord::NotAKeyword, value: table_name}) => {
@@ -205,7 +197,7 @@ impl Parser /*<'a>*/ {
             _ => {
                 return Err(
                     ParserError {
-                        message: "idk table name error".to_owned(),
+                        message: "idk table name error".to_string(),
                         index: self.index,
                     }
                 )
@@ -219,17 +211,7 @@ impl Parser /*<'a>*/ {
 
 
         // makes sure notthing is after last token
-        match &mut self.tokens[self.index]{
-            Token::SemiColon => {},
-            _ => {
-                return Err(
-                    ParserError {
-                        message: "invalid syntax after table name".to_owned(),
-                        index: self.index,
-                    }
-                )
-            }
-        };
+        self.finalize_query()?;
     
 
 
@@ -274,20 +256,7 @@ impl Parser /*<'a>*/ {
         let mut all = false;
         self.next_token();
     
-    
-        match &self.tokens[self.index]{
-            Token::Word(Word { keyword: KeyWord::Into, .. }) => {
-                self.next_token();
-            },
-            _ => {
-                return Err(
-                    ParserError {
-                        message: "no into".to_owned(),
-                        index: self.index,
-                    }
-                )
-            }
-        }
+        self.confirm_keyword(KeyWord::Into)?;
     
         let table_name: Result<String, ParserError> = match &mut self.tokens[self.index]{
             Token::Word(Word { keyword: KeyWord::NotAKeyword, value: table_name}) => {
@@ -296,7 +265,7 @@ impl Parser /*<'a>*/ {
             _ => {
                 return Err(
                     ParserError {
-                        message: "idk table name error".to_owned(),
+                        message: "idk table name error".to_string(),
                         index: self.index,
                     }
                 )
@@ -312,20 +281,21 @@ impl Parser /*<'a>*/ {
             Token::Word(Word { keyword: KeyWord::Values, .. }) => {
                 // if next token is Token::Values means the columns are unspecified so all of them
                 all = true;
+                self.next_token();
                 if self.tokens[self.index] != Token::LParen {
                     return Err(
                         ParserError {
-                            message: "values not found".to_owned(),
+                            message: "values not found".to_string(),
                             index: self.index,
                         }
                     )
                 }
-                values = self.get_words_in_paren()?;
+                values = self.get_values_in_paren()?;
             },
             _ => {
                 return Err(
                     ParserError {
-                        message: "invalid syntax after table name".to_owned(),
+                        message: "invalid syntax after table name".to_string(),
                         index: self.index,
                     }
                 )
@@ -338,12 +308,12 @@ impl Parser /*<'a>*/ {
             match &mut self.tokens[self.index]{
                 Token::Word(Word { keyword: KeyWord::Values, .. }) => {
                     self.next_token();
-                    values = self.get_words_in_paren()?;
+                    values = self.get_values_in_paren()?;
                 },
                 _ => {
                     return Err(
                         ParserError {
-                            message: "invalid syntax after table name".to_owned(),
+                            message: "invalid syntax after table name".to_string(),
                             index: self.index,
                         }
                     )
@@ -357,9 +327,9 @@ impl Parser /*<'a>*/ {
     
         Ok(Statement::Insert {
             table_name: table_name?,
-            all: all,
-            columns: Some(cols),
-            values: values,
+            all,
+            columns: if cols.len() != 0 { Some(cols) }else { None },
+            values,
         })
     
     }
@@ -409,19 +379,17 @@ impl Parser /*<'a>*/ {
 
 
     pub fn update_statement(&mut self) -> Result<Statement, ParserError> {
-        let mut cols: Vec<String> = Vec::new();
-        let mut values: Vec<String> = Vec::new();
-        let mut all = false;
+        let mut allocations: Vec<Allocation> = Vec::new();
         self.next_token();
 
         let table_name: Result<String, ParserError> = match &mut self.tokens[self.index]{
-            Token::Word(Word { keyword: KeyWord::NotAKeyword, value: table_name}) => {
+            Token::Word(Word { value: table_name, .. }) => {
                 Ok(table_name.to_string())
             },
             _ => {
                 return Err(
                     ParserError {
-                        message: "idk table name error".to_owned(),
+                        message: "idk table name error".to_string(),
                         index: self.index,
                     }
                 )
@@ -431,62 +399,91 @@ impl Parser /*<'a>*/ {
 
 
 
-
-
-
-        match &mut self.tokens[self.index]{
-            Token::Word(Word { keyword: KeyWord::And, .. }) => {
+        match self.tokens[self.index]{
+            Token::Word(Word {keyword: KeyWord::Where, ..}) => {
                 self.next_token();
                 loop{
-                    println!("{:?}", &self.tokens[self.index]);
+                    let mut allocation = Allocation{
+                        column: String::new(),
+                        value: String::new(),
+                    };
                     match &self.tokens[self.index]{
                         Token::Word(Word { value: col, .. }) => {
-                            cols.push(col.to_string());
+                            allocation.column = col.to_string();
                             self.next_token();
                         },
-                        Token::Comma => self.next_token(),
-                        Token::RParen => {
+                        _ => {
+                            return Err(         
+                                ParserError {
+                                    message: "column name wher error".to_string(),
+                                    index: self.index,         
+                                }         
+                            )           
+                        }
+                    }
+                    match &self.tokens[self.index]{
+                        Token::Eq => {
                             self.next_token();
+                        },
+                        _ => {
+                            return Err(
+                                ParserError {
+                                    message: "no = sign".to_string(),
+                                    index: self.index,
+                                }
+                            )
+                        }
+                    }
+                    match &self.tokens[self.index]{
+                        Token::SingleQuotedString(value) => {
+                            allocation.value = value.to_string();
+                            self.next_token();
+                        },
+                        _ => {
+                            return Err(
+                                ParserError {
+                                    message: "values must be quoted".to_string(),
+                                    index: self.index,
+                                }
+                            )
+                        }
+                    }
+                    allocations.push(allocation);
+                    match &self.tokens[self.index]{
+                        Token::Word(Word {keyword: KeyWord::And, .. }) => {
+                            self.next_token();
+                        },
+                        _ => {
                             break;
-                        },
-                        _ => return Err(
-                            ParserError {
-                                message: String::from("error in columns"),
-                                index: self.index,
-                            }
-                        )
+                        }
                     }
                 }
-        
-            },
-            Token::Word(Word { keyword: KeyWord::Set, .. }) => {
-                // get col name
-                // get =
-                // get value 
-            },
-            _ => {
-                return Err(
-                    ParserError {
-                        message: "invalid syntax after table name".to_owned(),
-                        index: self.index,
-                    }
-                )
             }
-        };
-
-
-
-
-
-
-
-
-
+            _ => {}
+        }
         self.next_token();
+    
+        
+
+        let clauses = self.get_clauses()?;
+
+
+        // makes sure notthing is after last token
+        println!("{:?}", clauses);
+        println!("{}", &self.tokens[self.index]);
+        //self.finalize_query()?;
+    
+
+
+
+
+ 
+
+
         Ok(Statement::Update {
             table: table_name?,
-            Clauses: todo!(),
-            selection: todo!()
+            clauses,
+            allocations
         })
     }
 
@@ -549,6 +546,14 @@ impl Parser /*<'a>*/ {
             columns: todo!()
         })
     }
+    pub fn drop_statement(&mut self) -> Result<Statement, ParserError> {
+        println!("create_");
+        self.next_token();
+        Ok(Statement::CreateTable {
+            name: todo!(),
+            columns: todo!()
+        })
+    }
 
 
 
@@ -577,7 +582,7 @@ impl Parser /*<'a>*/ {
             _ => {
                 return Err(
                     ParserError {
-                        message: "invalid syntax after table name".to_owned(),
+                        message: "invalid syntax after table name".to_string(),
                         index: self.index,
                     }
                 )
@@ -657,8 +662,27 @@ impl Parser /*<'a>*/ {
     }
 
 
-    pub fn confirm_keyword(keyword: KeyWord){
-
+    pub fn confirm_keyword(&mut self, expected_keyword: KeyWord) -> Result<(), ParserError> {
+        if let Token::Word(Word {keyword, .. }) = &self.tokens[self.index] {
+            if keyword == &expected_keyword {
+                self.next_token();
+                return Ok(())
+            }else{
+                println!("fuck you");
+                return Err(
+                    ParserError {
+                        message: "no from".to_string(),
+                        index: self.index,
+                    }
+                )
+            }
+        }
+        return Err(
+            ParserError {
+                message: "no keyword".to_string(),
+                index: self.index,
+            }
+        );
     }
 
 
@@ -677,6 +701,7 @@ impl Parser /*<'a>*/ {
 
 
 
+    // get where condition=value
     pub fn get_clauses(&mut self) -> Result<Vec<Clause>, ParserError> {
         let mut selection: Vec<Clause> = Vec::new();
         match self.tokens[self.index]{
@@ -696,7 +721,7 @@ impl Parser /*<'a>*/ {
                         _ => {
                             return Err(         
                                 ParserError {
-                                    message: "column name wher error".to_owned(),
+                                    message: "column name wher error".to_string(),
                                     index: self.index,         
                                 }         
                             )           
@@ -715,7 +740,7 @@ impl Parser /*<'a>*/ {
                         _ => {
                             return Err(
                                 ParserError {
-                                    message: "no = sign".to_owned(),
+                                    message: "no = sign".to_string(),
                                     index: self.index,
                                 }
                             )
@@ -729,7 +754,7 @@ impl Parser /*<'a>*/ {
                         _ => {
                             return Err(
                                 ParserError {
-                                    message: "values must be quoted".to_owned(),
+                                    message: "values must be quoted".to_string(),
                                     index: self.index,
                                 }
                             )
