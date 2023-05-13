@@ -27,6 +27,8 @@ impl SQLCommand {
 }
 
 pub fn run_sql_command(command: String) -> Result<String, String> {
+
+    // match this result
     let parsed_query = Parser::parse(command);
 
     Ok("Query Executed".to_string())

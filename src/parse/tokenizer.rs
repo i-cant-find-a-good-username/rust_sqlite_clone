@@ -1,5 +1,5 @@
 use std::{fmt, iter::Peekable, str::Chars};
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 
 pub enum KeyWord {
     Select,
@@ -35,8 +35,7 @@ pub enum KeyWord {
     AutoIncrement,
     NotAKeyword,
 }
-#[derive(Debug)]
-
+#[derive(Debug, PartialEq)]
 pub enum Token {
     EOF,
     Word(Word),
@@ -66,7 +65,8 @@ pub enum Token {
     RBrace,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
+
 pub struct Word {
     pub value: String,
     pub keyword: KeyWord,
@@ -79,7 +79,7 @@ pub struct TokenizerError {
     pub col: u64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Whitespace {
     Space,
     Newline,
@@ -161,7 +161,6 @@ impl<'a> Tokenizer<'a> {
         let mut tokens: Vec<Token> = Vec::new();
 
         while let Some(token) = self.next_token(&mut peekable)? {
-            //println!("a token is ================> {:?}", token);
             match &token {
                 Token::Whitespace(Whitespace::Newline) => {
                     self.line += 1;
@@ -177,8 +176,6 @@ impl<'a> Tokenizer<'a> {
             tokens.push(token);
         }
         tokens.push(Token::EOF);
-
-        //println!("tokens{:?}", tokens);
 
         Ok(tokens)
     }
