@@ -284,6 +284,9 @@ impl<'a> Tokenizer<'a> {
                 || char == &'('
                 || char == &')'
                 || char == &';'
+                || char == &'='
+                || char == &'<'
+                || char == &'>'
             {
                 break;
             } else {
