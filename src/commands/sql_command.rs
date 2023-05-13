@@ -1,4 +1,4 @@
-use crate::parse::parser::{self, Parser, Statement, ParserError};
+use crate::parse::parser::{self, Parser, ParserError, Statement};
 
 #[derive(Debug)]
 pub enum SQLCommand {
@@ -27,16 +27,8 @@ impl SQLCommand {
 }
 
 pub fn run_sql_command(command: String) -> Result<String, String> {
-
-    // match this result
-    let result: Result<Vec<Statement>, ParserError> = match Parser::parse(command) {
-        Ok(msg) => {
-            return Ok(format!("{:?}", msg))
-        },
-        Err(msg) => {
-            return Err(format!("{:?}", msg))
-        },
+    match Parser::parse(command.trim().to_string()) {
+        Ok(msg) => return Ok(format!("{:?}", msg)),
+        Err(msg) => return Err(format!("{:?}", msg)),
     };
-
-
 }

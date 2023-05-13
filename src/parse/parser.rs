@@ -56,7 +56,7 @@ pub enum Statement {
         table_name: String,
         all: bool,
         columns: Option<Vec<String>>,
-        values: Vec<DataType>,
+        values: Vec<String>,
     },
     Update {
         table: String,
@@ -100,7 +100,7 @@ impl Parser /*<'a>*/ {
         let mut new_tokenizer = tokenizer::Tokenizer::new(&query);
         // might need error handling
         let tokens = new_tokenizer.tokenize().unwrap();
-        //println!("{:?}", tokens);
+        println!("{:?}", tokens);
         let mut parser = Parser::new(tokens);
         let mut statements: Vec<Statement> = Vec::new();
 
@@ -295,21 +295,24 @@ impl Parser /*<'a>*/ {
         };
         self.next_token();
     
-        println!("****-----------------------{:?}", &self.tokens[self.index]);
-        // parse whether cols are specified or not
         match &mut self.tokens[self.index]{
             Token::LParen => {
+                self.next_token();
                 loop{
+                    println!("{:?}", &self.tokens[self.index]);
                     match &self.tokens[self.index]{
-                        Token::Word(Word { keyword: KeyWord::NotAKeyword, value: col }) => {
+                        Token::Word(Word { value: col, .. }) => {
                             cols.push(col.to_string());
                             self.next_token();
                         },
                         Token::Comma => self.next_token(),
-                        Token::RParen => break,
+                        Token::RParen => {
+                            self.next_token();
+                            break;
+                        },
                         _ => return Err(
                             ParserError {
-                                message: String::from("columns are required"),
+                                message: String::from("error in columns"),
                                 index: self.index,
                             }
                         )
@@ -319,58 +322,34 @@ impl Parser /*<'a>*/ {
             },
             Token::Word(Word { keyword: KeyWord::Values, .. }) => {
                 all = true;
-            },
-            _ => {
-                return Err(
-                    ParserError {
-                        message: "invalid syntax after table name".to_owned(),
-                        index: self.index,
-                    }
-                )
-            }
-        };
-        self.next_token();
-    
-        println!("{}", &self.tokens[self.index]);
-        match &self.tokens[self.index]{
-            Token::Word(Word { keyword: KeyWord::Values, .. }) => {
+                if self.tokens[self.index] != Token::LParen {
+                    return Err(
+                        ParserError {
+                            message: "values not found".to_owned(),
+                            index: self.index,
+                        }
+                    )
+                }
                 self.next_token();
-            },
-            _ => {
-                return Err(
-                    ParserError {
-                        message: "no values keyword".to_owned(),
-                        index: self.index,
-                    }
-                )
-            }
-        };
-        self.next_token();
-
-
-
-        match &mut self.tokens[self.index]{
-            Token::LParen => {
                 loop{
                     match &self.tokens[self.index]{
-                        Token::Word(Word { keyword: KeyWord::NotAKeyword, value }) => {
+                        Token::SingleQuotedString(value) => {
                             values.push(value.to_string());
                             self.next_token();
                         },
                         Token::Comma => self.next_token(),
-                        Token::RParen => break,
+                        Token::RParen => {
+                            self.next_token();
+                            break;
+                        },
                         _ => return Err(
                             ParserError {
-                                message: String::from("columns are required"),
+                                message: String::from("values are required"),
                                 index: self.index,
                             }
                         )
                     }
                 }
-        
-            },
-            Token::Word(Word { keyword: KeyWord::Values, .. }) => {
-                all = true;
             },
             _ => {
                 return Err(
@@ -381,12 +360,47 @@ impl Parser /*<'a>*/ {
                 )
             }
         };
-        self.next_token();
+    
 
+
+        if all == false{
+            match &mut self.tokens[self.index]{
+                Token::Word(Word { keyword: KeyWord::Values, .. }) => {
+                    self.next_token();
+                    self.next_token();
+                    loop{
+                        match &self.tokens[self.index]{
+                            Token::SingleQuotedString(value) => {
+                                values.push(value.to_string());
+                                self.next_token();
+                            },
+                            Token::Comma => self.next_token(),
+                            Token::RParen => {
+                                self.next_token();
+                                break;
+                            },
+                            _ => return Err(
+                                ParserError {
+                                    message: String::from("values are required"),
+                                    index: self.index,
+                                }
+                            )
+                        }
+                    }
+                },
+                _ => {
+                    return Err(
+                        ParserError {
+                            message: "invalid syntax after table name".to_owned(),
+                            index: self.index,
+                        }
+                    )
+                }
+            };
+        }
 
 
         // makes sure notthing is after last token
-        println!("{}", &self.tokens[self.index]);
         match &mut self.tokens[self.index]{
             Token::SemiColon => {},
             _ => {
@@ -404,7 +418,7 @@ impl Parser /*<'a>*/ {
             table_name: table_name?,
             all: all,
             columns: Some(cols),
-            values: todo!(),
+            values: values,
         })
     
     }
@@ -492,12 +506,24 @@ impl Parser /*<'a>*/ {
                 Token::Comma => self.index += 1,
                 Token::Whitespace(Whitespace::Space) => self.index += 1,
                 Token::Whitespace(Whitespace::Newline) => self.index += 1,
-                Token::Whitespace(Whitespace::Tab) => self.index += 4,
-                Token::Word(Word { keyword: KeyWord::Select, .. }) => self.index += 1,
+                Token::Whitespace(Whitespace::Tab) => self.index += 1,
+                //Token::Word(Word { keyword: KeyWord::Select, .. }) => self.index += 1,
                 _ => break
             }
         }
     }
+
+
+    pub fn confirm_keyword(keyword: KeyWord){
+
+    }
+
+
+
+
+
+
+
 
     //pub fn check_query_end(&mut self) -> bool {
     //    let result = match self.tokens[self.index]{

@@ -282,6 +282,7 @@ impl<'a> Tokenizer<'a> {
                 || char == &'\t'
                 || char == &','
                 || char == &'('
+                || char == &')'
                 || char == &';'
             {
                 break;
