@@ -195,7 +195,7 @@ impl<'a> Tokenizer<'a> {
                         chars.next();
                         match chars.peek() {
                             Some('=') => self.consume_and_return(chars, Token::DoubleEq),
-                            _ => self.consume_and_return(chars, Token::Eq),
+                            _ => Ok(Some(Token::Eq)),
                         }
                     }
                     '!' => {
@@ -203,21 +203,21 @@ impl<'a> Tokenizer<'a> {
                         chars.next();
                         match chars.peek() {
                             Some('=') => self.consume_and_return(chars, Token::Neq),
-                            _ => self.consume_and_return(chars, Token::Char('!')),
+                            _ => Ok(Some(Token::Char('!'))),
                         }
                     }
                     '<' => {
                         chars.next();
                         match chars.peek() {
                             Some('=') => self.consume_and_return(chars, Token::LtEq),
-                            _ => self.consume_and_return(chars, Token::Lt),
+                            _ => Ok(Some(Token::Lt)),
                         }
                     }
                     '>' => {
                         chars.next();
                         match chars.peek() {
                             Some('=') => self.consume_and_return(chars, Token::GtEq),
-                            _ => self.consume_and_return(chars, Token::Gt),
+                            _ => Ok(Some(Token::Gt)),
                         }
                     }
                     '+' => self.consume_and_return(chars, Token::Plus),
