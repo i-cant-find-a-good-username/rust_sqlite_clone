@@ -261,14 +261,14 @@ impl<'a> Tokenizer<'a> {
         let mut text = String::from("");
 
         while let Some(&char) = chars.peek() {
+            chars.next();
             if char == '\'' {
                 break;
             } else {
                 text.push(char);
-                chars.next();
             }
         }
-        let text = String::from("hello there");
+        let text = String::from(text);
         Ok(Some(Token::SingleQuotedString(text)))
     }
 

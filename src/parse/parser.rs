@@ -1,9 +1,6 @@
 use super::tokenizer::{self, Token, KeyWord, Word, Whitespace};
-#[derive(Debug)]
 
-pub struct ObjectName(String);
 #[derive(Debug)]
-
 pub struct ColumnDef {
     pub name: String,
     pub data_type: DataType,
@@ -22,7 +19,7 @@ pub struct Assignment {}
 
 // like not_null or auto_increment
 pub struct ColumnOptionDef {
-    pub name: Option<ObjectName>,
+    pub name: Option<String>,
     pub option: ColumnOption,
 }
 #[derive(Debug)]
@@ -51,39 +48,38 @@ pub enum ColumnOption {
 #[derive(Debug)]
 pub enum Statement {
     Select {
-        table_name: ObjectName,
+        table_name: String,
         all: bool,
-        columns: Option<Vec<ObjectName>>,
+        columns: Option<Vec<String>>,
     },
     Insert {
-        into: bool,
-        table_name: ObjectName,
-        columns: Vec<ObjectName>,
+        table_name: String,
+        all: bool,
+        columns: Option<Vec<String>>,
         values: Vec<DataType>,
-        table: bool,
     },
     Update {
-        table: ObjectName,
+        table: String,
         assignments: Vec<Assignment>,
-        from: Option<ObjectName>,
+        from: Option<String>,
         selection: Option<Selection>,
     },
     Delete {
         /// FROM
-        table_name: ObjectName,
+        table_name: String,
         /// WHERE
         selection: Option<Selection>,
     },
     CreateTable {
-        name: ObjectName,
+        name: String,
         columns: Vec<ColumnDef>,
     },
     Drop {
-        object_type: ObjectName,
-        names: Vec<ObjectName>,
+        object_type: String,
+        names: Vec<String>,
     },
 }
-
+#[derive(Debug)]
 pub struct ParserError {
     pub message: String,
     index: usize,
@@ -104,14 +100,15 @@ impl Parser /*<'a>*/ {
         let mut new_tokenizer = tokenizer::Tokenizer::new(&query);
         // might need error handling
         let tokens = new_tokenizer.tokenize().unwrap();
+        //println!("{:?}", tokens);
         let mut parser = Parser::new(tokens);
         let mut statements: Vec<Statement> = Vec::new();
 
-
         loop{
-            if parser.check_query_end() {
-                println!("add statement here");
-            }
+            // not needeed parsers take care of query end
+            //if parser.check_query_end() {
+            //    println!("add statement here");
+            //}
             if parser.check_file_end() {
                 break;
             }
@@ -119,35 +116,14 @@ impl Parser /*<'a>*/ {
             let statement = parser.parse_statement()??;
             statements.push(statement);
             
-            //println!("hello there my dude{:?}", statements);
-
             parser.index += 1;
         }
-        //println!("hello there my dude{:?}", statements);
 
         Ok(statements)
     }
 
-
-
-    pub fn check_query_end(&mut self) -> bool {
-        let result = match self.tokens[self.index]{
-            Token::SemiColon => true,
-            _ => false
-        };
-        result
-    }
-
-
-    pub fn check_file_end(&mut self) -> bool {
-        let result = match self.tokens[self.index]{
-            Token::EOF => true,
-            _ => false
-        };
-        result
-    }
-
     pub fn parse_statement(&mut self) -> Result<Result<Statement, ParserError>, ParserError>  {
+        println!("parse_statement start");
         match &self.tokens[self.index]{
             Token::Word(key_word) => {
                 match key_word.keyword{
@@ -163,74 +139,98 @@ impl Parser /*<'a>*/ {
                 }
             }
             _ => Err(ParserError{
-                message: "no keyword".to_owned(),
+                message: "idk what the error".to_owned(),
                 index: self.index
             }),
         }
     }
 
 
+
+
+
+
+
+
+
+
+
     pub fn select_statement(&mut self) -> Result<Statement, ParserError> {
-        // selection type * or cols
-        // from 
-        // table name
-        // ;
         let mut cols: Vec<String> = Vec::new();
         let mut all = false;
-        self.trim();
-
-        // if first token == ; self.index += 1;
-
+        self.next_token();
+    
         if self.tokens[self.index] == Token::Mul {
-            println!("********************");
             all = true;
-            self.index += 1;
-            self.trim();
+            self.next_token();
         }else {
             loop{
                 match &self.tokens[self.index]{
                     Token::Word(Word { keyword: KeyWord::NotAKeyword, value: col }) => {
                         cols.push(col.to_string());
-                        self.index += 1;                        
+                        self.next_token();
                     },
-                    Token::Comma => self.index += 1,
-                    Token::Whitespace(Whitespace::Space) => self.index += 1,
-                    Token::Whitespace(Whitespace::Newline) => self.index += 1,
-                    Token::Whitespace(Whitespace::Tab) => self.index += 4,
+                    Token::Comma => self.next_token(),
                     Token::Word(Word { keyword: KeyWord::From, .. }) => break,
-                    err => panic!("not allowed {} ", err)// errr ,
+                    _ => return Err(
+                        ParserError {
+                            message: String::from("columns are required"),
+                            index: self.index,
+                        }
+                    )
                 }
             }
-            self.index += 1;
-            self.trim();
         }
-
-        println!("==================================================>{:?}",cols);
-        println!("333333{}",&self.tokens[self.index] );
+    
         match &self.tokens[self.index]{
             Token::Word(Word { keyword: KeyWord::From, .. }) => {
-                println!("fromfromfromfromfromfromfromfromfromfromfromfromfromfromfromfromfromfromfromfromfromfromfrom");
-                self.index += 1;
-                self.trim();
+                self.next_token();
             },
-            _ => println!("err no from")
+            _ => {
+                return Err(
+                    ParserError {
+                        message: "no from".to_owned(),
+                        index: self.index,
+                    }
+                )
+            }
         }
-
-        match &self.tokens[self.index]{
+    
+        let table_name: Result<String, ParserError> = match &mut self.tokens[self.index]{
             Token::Word(Word {keyword: KeyWord::NotAKeyword, value: table_name}) => {
-                println!("from table name here  '''''''''''''''{}''''''  ", table_name);
-                self.index += 1;                        
+                Ok(table_name.to_string())
             },
-            _ => println!("error in table name idk fr")
-        }
-
-
-
-        // add 1 beause it stops on this query ;
+            _ => {
+                return Err(
+                    ParserError {
+                        message: "idk table name error".to_owned(),
+                        index: self.index,
+                    }
+                )
+            }
+        };
+        self.next_token();
+    
+        // makes sure notthing is after last token
+        match &mut self.tokens[self.index]{
+            Token::SemiColon => {},
+            _ => {
+                return Err(
+                    ParserError {
+                        message: "invalid syntax after table name".to_owned(),
+                        index: self.index,
+                    }
+                )
+            }
+        };
+    
+        // idk why this cant be put before Ok(table_name.to_string())
+        println!("statement  returned");
+    
         Ok(Statement::Select {
-            table_name: ObjectName(String::from("hello")),
-            all: true,
-            columns: Some(Vec::new())
+            table_name: table_name?,
+            all: all,
+            columns: Some(cols)
         })
     }
 
@@ -246,24 +246,247 @@ impl Parser /*<'a>*/ {
 
 
 
-    pub fn insert_statement(&self) -> Result<Statement, ParserError> {
-        Ok(Statement::Select { table_name: ObjectName(String::from("hello")), all: true, columns: Some(Vec::new())})
+
+
+
+
+
+
+
+
+
+
+
+
+    pub fn insert_statement(&mut self) -> Result<Statement, ParserError> {
+      
+        let mut cols: Vec<String> = Vec::new();
+        let mut values: Vec<String> = Vec::new();
+        let mut all = false;
+        self.next_token();
+    
+    
+        match &self.tokens[self.index]{
+            Token::Word(Word { keyword: KeyWord::Into, .. }) => {
+                self.next_token();
+            },
+            _ => {
+                return Err(
+                    ParserError {
+                        message: "no into".to_owned(),
+                        index: self.index,
+                    }
+                )
+            }
+        }
+    
+        let table_name: Result<String, ParserError> = match &mut self.tokens[self.index]{
+            Token::Word(Word { keyword: KeyWord::NotAKeyword, value: table_name}) => {
+                Ok(table_name.to_string())
+            },
+            _ => {
+                return Err(
+                    ParserError {
+                        message: "idk table name error".to_owned(),
+                        index: self.index,
+                    }
+                )
+            }
+        };
+        self.next_token();
+    
+        println!("****-----------------------{:?}", &self.tokens[self.index]);
+        // parse whether cols are specified or not
+        match &mut self.tokens[self.index]{
+            Token::LParen => {
+                loop{
+                    match &self.tokens[self.index]{
+                        Token::Word(Word { keyword: KeyWord::NotAKeyword, value: col }) => {
+                            cols.push(col.to_string());
+                            self.next_token();
+                        },
+                        Token::Comma => self.next_token(),
+                        Token::RParen => break,
+                        _ => return Err(
+                            ParserError {
+                                message: String::from("columns are required"),
+                                index: self.index,
+                            }
+                        )
+                    }
+                }
+        
+            },
+            Token::Word(Word { keyword: KeyWord::Values, .. }) => {
+                all = true;
+            },
+            _ => {
+                return Err(
+                    ParserError {
+                        message: "invalid syntax after table name".to_owned(),
+                        index: self.index,
+                    }
+                )
+            }
+        };
+        self.next_token();
+    
+        println!("{}", &self.tokens[self.index]);
+        match &self.tokens[self.index]{
+            Token::Word(Word { keyword: KeyWord::Values, .. }) => {
+                self.next_token();
+            },
+            _ => {
+                return Err(
+                    ParserError {
+                        message: "no values keyword".to_owned(),
+                        index: self.index,
+                    }
+                )
+            }
+        };
+        self.next_token();
+
+
+
+        match &mut self.tokens[self.index]{
+            Token::LParen => {
+                loop{
+                    match &self.tokens[self.index]{
+                        Token::Word(Word { keyword: KeyWord::NotAKeyword, value }) => {
+                            values.push(value.to_string());
+                            self.next_token();
+                        },
+                        Token::Comma => self.next_token(),
+                        Token::RParen => break,
+                        _ => return Err(
+                            ParserError {
+                                message: String::from("columns are required"),
+                                index: self.index,
+                            }
+                        )
+                    }
+                }
+        
+            },
+            Token::Word(Word { keyword: KeyWord::Values, .. }) => {
+                all = true;
+            },
+            _ => {
+                return Err(
+                    ParserError {
+                        message: "invalid syntax after table name".to_owned(),
+                        index: self.index,
+                    }
+                )
+            }
+        };
+        self.next_token();
+
+
+
+        // makes sure notthing is after last token
+        println!("{}", &self.tokens[self.index]);
+        match &mut self.tokens[self.index]{
+            Token::SemiColon => {},
+            _ => {
+                return Err(
+                    ParserError {
+                        message: "invalid syntax after table name".to_owned(),
+                        index: self.index,
+                    }
+                )
+            }
+        };
+    
+    
+        Ok(Statement::Insert {
+            table_name: table_name?,
+            all: all,
+            columns: Some(cols),
+            values: todo!(),
+        })
+    
     }
-    pub fn update_statement(&self) -> Result<Statement, ParserError> {
-        Ok(Statement::Select { table_name: ObjectName(String::from("hello")), all: true, columns: Some(Vec::new())})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    pub fn update_statement(&mut self) -> Result<Statement, ParserError> {
+        println!("update_");
+        self.next_token();
+        Ok(Statement::Select {
+            table_name: String::from("tests"),
+            all: true,
+            columns: None
+        })
     }
-    pub fn delete_statement(&self) -> Result<Statement, ParserError> {
-        Ok(Statement::Select { table_name: ObjectName(String::from("hello")), all: true, columns: Some(Vec::new())})
+    pub fn delete_statement(&mut self) -> Result<Statement, ParserError> {
+        println!("delete_");
+        self.next_token();
+        Ok(Statement::Select {
+            table_name: String::from("tests"),
+            all: true,
+            columns: None
+        })
     }
-    pub fn create_statement(&self) -> Result<Statement, ParserError> {
-        Ok(Statement::Select { table_name: ObjectName(String::from("hello")), all: true, columns: Some(Vec::new())})
+    pub fn create_statement(&mut self) -> Result<Statement, ParserError> {
+        println!("create_");
+        self.next_token();
+        Ok(Statement::Select {
+            table_name: String::from("tests"),
+            all: true,
+            columns: None
+        })
     }
 
 
 
 
 
-    pub fn trim (&mut self) {
+    pub fn next_token (&mut self) {
+        self.index += 1;
         loop{
             match &self.tokens[self.index]{
                 Token::Comma => self.index += 1,
@@ -276,6 +499,21 @@ impl Parser /*<'a>*/ {
         }
     }
 
+    //pub fn check_query_end(&mut self) -> bool {
+    //    let result = match self.tokens[self.index]{
+    //        Token::SemiColon => true,
+    //        _ => false
+    //    };
+    //    result
+    //}
+
+    pub fn check_file_end(&mut self) -> bool {
+        let result = match self.tokens[self.index]{
+            Token::EOF => true,
+            _ => false
+        };
+        result
+    }
 
 }
 
@@ -284,13 +522,4 @@ impl Parser /*<'a>*/ {
 
 
 
-
-
-
-//select * from users;
-//select * from users;
-//select * from users;
-//select * from users;
-//select * from users;
-//select * from users;
-//select * from users;
+// insert into users values('fez', 'zefzef' ,'fzefze');
