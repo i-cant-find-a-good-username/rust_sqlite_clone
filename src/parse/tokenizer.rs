@@ -34,6 +34,7 @@ pub enum KeyWord {
     NotNull,
     AutoIncrement,
     NotAKeyword,
+    PrimaryKey
 }
 #[derive(Debug, PartialEq)]
 pub enum Token {
@@ -419,6 +420,10 @@ impl<'a> Tokenizer<'a> {
             "auto_increment" => Word {
                 value: s,
                 keyword: KeyWord::AutoIncrement,
+            },
+            "primary_key" => Word {
+                value: s,
+                keyword: KeyWord::PrimaryKey,
             },
             _ => Word {
                 value: s,

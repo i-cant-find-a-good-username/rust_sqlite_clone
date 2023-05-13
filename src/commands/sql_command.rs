@@ -7,6 +7,7 @@ pub enum SQLCommand {
     Create(String),
     Update(String),
     Delete(String),
+    Drop(String),
     Invalid(String),
 }
 
@@ -21,6 +22,7 @@ impl SQLCommand {
             "create" => SQLCommand::Create(command),
             "update" => SQLCommand::Update(command),
             "delete" => SQLCommand::Delete(command),
+            "drop" => SQLCommand::Drop(command),
             _ => SQLCommand::Invalid("invalid query type".to_string()),
         }
     }
