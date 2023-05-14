@@ -59,7 +59,7 @@ pub enum Statement {
         table_name: String,
         all: bool,
         columns: Option<Vec<String>>,
-        selection: Option<Vec<Clause>>,
+        clauses: Option<Vec<Clause>>,
     },
     Insert {
         table_name: String,
@@ -178,7 +178,7 @@ impl Parser /*<'a>*/ {
 
         let table_name = self.get_table_name()??;
 
-        let selection = self.get_clauses()?;
+        let clauses = self.get_clauses()?;
 
         // makes sure notthing is after last token
         self.finalize_query()?;
@@ -187,8 +187,8 @@ impl Parser /*<'a>*/ {
             table_name: table_name,
             all: all,
             columns: if cols.len() != 0 { Some(cols) } else { None },
-            selection: if selection.len() != 0 {
-                Some(selection)
+            clauses: if clauses.len() != 0 {
+                Some(clauses)
             } else {
                 None
             },
@@ -403,10 +403,13 @@ impl Parser /*<'a>*/ {
             create table users (
                 id integer primary_key,
                 username text not_null,
-                username auto_increment not_null,
+                email text not_null,
             );
-
         */
+        self.confirm_keyword(KeyWord::Table)?;
+        let table_name = self.get_table_name()??;
+        
+
         println!("create_");
         self.next_token();
         Ok(Statement::CreateTable {
@@ -624,3 +627,5 @@ impl Parser /*<'a>*/ {
 }
 
 // insert into users values('fez', 'zefzef' ,'fzefze');
+
+

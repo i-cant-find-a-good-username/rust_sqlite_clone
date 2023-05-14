@@ -11,16 +11,21 @@ struct DatabaseMetaData {
 
 struct Database {
     name: String,
-
     tables: HashMap<String, Table>,
 }
 
 impl Database {
-    fn new() {}
+    fn new() {
 
-    fn has_table() {}
+    }
 
-    fn get_table() {}
+    fn has_table() {
+
+    }
+
+    fn get_table() {
+
+    }
 }
 
 //create table test(

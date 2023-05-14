@@ -34,3 +34,30 @@ pub fn run_sql_command(command: String) -> Result<String, String> {
         Err(msg) => return Err(format!("{:?}", msg)),
     };
 }
+
+
+
+
+
+
+#[cfg(test)]
+    #[test]
+    fn it_works() {
+        let result = run_sql_command(String::from("select * from users"));
+        println!("{:?}", result)
+        //assert_eq!(result, 4);
+    }
+
+
+
+
+
+
+#[cfg(test)]
+mod testds {
+    #[test]
+    fn it_works() {
+        let result = 2 + 2;
+        assert_eq!(result, 4);
+    }
+}

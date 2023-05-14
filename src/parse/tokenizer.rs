@@ -40,6 +40,7 @@ pub enum KeyWord {
 pub enum Token {
     EOF,
     Word(Word),
+    //Number(String ,bool),
     Char(char),
     SingleQuotedString(String),
     Comma,

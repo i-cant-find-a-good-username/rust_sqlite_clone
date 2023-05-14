@@ -27,3 +27,27 @@ struct Column {
     is_unique: bool,
     nullable: bool,
 }
+
+
+
+
+
+
+
+
+
+
+
+
+impl Table {
+    
+    pub fn new(){
+
+    }
+
+
+
+
+
+
+}
