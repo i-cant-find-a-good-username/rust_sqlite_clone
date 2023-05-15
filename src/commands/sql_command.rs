@@ -1,5 +1,5 @@
-use crate::parse::parser::{self, Parser, ParserError, Statement};
-
+use crate::parse::parser::{Parser, ParserError, Statement};
+use crate::parse;
 #[derive(Debug)]
 pub enum SQLCommand {
     Insert(String),
@@ -29,35 +29,20 @@ impl SQLCommand {
 }
 
 pub fn run_sql_command(command: String) -> Result<String, String> {
-    match Parser::parse(command.trim().to_string()) {
-        Ok(msg) => return Ok(format!("{:?}", msg)),
+    match parse::parse(command.trim().to_string()) {
+        Ok(msg) => {
+            
+            return Ok(format!("{:?}", msg))
+        },
         Err(msg) => return Err(format!("{:?}", msg)),
     };
+
+    // here we call the database and table on parsing success
 }
 
 
 
-
-
-
-#[cfg(test)]
-    #[test]
-    fn it_works() {
-        let result = run_sql_command(String::from("select * from users"));
-        println!("{:?}", result)
-        //assert_eq!(result, 4);
-    }
-
-
-
-
-
-
-#[cfg(test)]
-mod testds {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-}
+//match Parser::parse(command.trim().to_string()) {
+//    Ok(msg) => return Ok(format!("{:?}", msg)),
+//    Err(msg) => return Err(format!("{:?}", msg)),
+//;

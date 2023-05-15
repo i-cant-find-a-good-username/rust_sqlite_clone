@@ -12,6 +12,21 @@ pub struct Selection {
     column: ColumnDef,
     value: DataType, // changing type
 }
+
+
+//pub struct Clause {
+//    left: BinOp,
+//    operation: Token,
+//    right: BinOp,
+//}
+//struct BinOp{
+//    left: String,
+//    operation: Token,
+//    right: String,
+//}
+//struct nested(BinOp);
+
+
 #[derive(Debug)]
 pub struct Clause {
     column: String,
@@ -68,7 +83,7 @@ pub enum Statement {
         values: Vec<String>,
     },
     Update {
-        table: String,
+        table_name: String,
         allocations: Vec<Allocation>,
         clauses: Vec<Clause>,
     },
@@ -129,7 +144,7 @@ impl Parser /*<'a>*/ {
     }
 
     pub fn parse_statement(&mut self) -> Result<Result<Statement, ParserError>, ParserError> {
-        println!("parse_statement start");
+        // this block is returned
         match &self.tokens[self.index] {
             Token::Word(key_word) => match key_word.keyword {
                 KeyWord::Select => Ok(self.select_statement()),
@@ -173,7 +188,6 @@ impl Parser /*<'a>*/ {
             },
         }
 
-        // keyword
         self.confirm_keyword(KeyWord::From)?;
 
         let table_name = self.get_table_name()??;
@@ -184,8 +198,8 @@ impl Parser /*<'a>*/ {
         self.finalize_query()?;
 
         Ok(Statement::Select {
-            table_name: table_name,
-            all: all,
+            table_name,
+            all,
             columns: if cols.len() != 0 { Some(cols) } else { None },
             clauses: if clauses.len() != 0 {
                 Some(clauses)
@@ -255,7 +269,7 @@ impl Parser /*<'a>*/ {
         self.finalize_query()?;
 
         Ok(Statement::Insert {
-            table_name: table_name,
+            table_name,
             all,
             columns: if cols.len() != 0 { Some(cols) } else { None },
             values,
@@ -338,7 +352,7 @@ impl Parser /*<'a>*/ {
         self.finalize_query()?;
 
         Ok(Statement::Update {
-            table: table_name,
+            table_name: table_name,
             clauses,
             allocations,
         })
@@ -360,7 +374,7 @@ impl Parser /*<'a>*/ {
         }
 
         Ok(Statement::Delete {
-            table_name: table_name,
+            table_name,
             selection: clauses,
         })
     }
@@ -539,6 +553,96 @@ impl Parser /*<'a>*/ {
     }
 
     // get where condition=value
+    //pub fn get_clauses(&mut self) -> Result<Vec<Clause>, ParserError> {
+    //    let mut selection: Vec<Clause> = Vec::new();
+    //    match self.tokens[self.index] {
+    //        Token::Word(Word {
+    //            keyword: KeyWord::Where,
+    //            ..
+    //        }) => {
+    //            self.next_token();
+    //            loop {
+    //                let mut clause = Clause {
+    //                    column: String::new(),
+    //                    operation: Token::Eq, // doesnt matter, will change
+    //                    value: String::new(),
+    //                };
+    //                match &self.tokens[self.index] {
+    //                    Token::Word(Word { value: col, .. }) => {
+    //                        clause.column = col.to_string();
+    //                        self.next_token();
+    //                    }
+    //                    _ => {
+    //                        return Err(ParserError {
+    //                            message: "column name wher error".to_string(),
+    //                            index: self.index,
+    //                        })
+    //                    }
+    //                }
+    //                match &self.tokens[self.index] {
+    //                    Token::Eq
+    //                    | Token::Gt
+    //                    | Token::Lt
+    //                    | Token::GtEq
+    //                    | Token::LtEq
+    //                    | Token::Neq => {
+    //                        if self.tokens[self.index] == Token::Eq {
+    //                            clause.operation = Token::Eq
+    //                        } else if self.tokens[self.index] == Token::Gt {
+    //                            clause.operation = Token::Gt
+    //                        } else if self.tokens[self.index] == Token::Lt {
+    //                            clause.operation = Token::Lt
+    //                        } else if self.tokens[self.index] == Token::GtEq {
+    //                            clause.operation = Token::GtEq
+    //                        } else if self.tokens[self.index] == Token::LtEq {
+    //                            clause.operation = Token::LtEq
+    //                        } else if self.tokens[self.index] == Token::Neq {
+    //                            clause.operation = Token::Neq
+    //                        }
+    //                        self.next_token();
+    //                    }
+    //                    _ => {
+    //                        return Err(ParserError {
+    //                            message: "no = sign".to_string(),
+    //                            index: self.index,
+    //                        })
+    //                    }
+    //                }
+    //                match &self.tokens[self.index] {
+    //                    Token::SingleQuotedString(value) => {
+    //                        clause.value = value.to_string();
+    //                        self.next_token();
+    //                    }
+    //                    _ => {
+    //                        return Err(ParserError {
+    //                            message: "values must be quoted".to_string(),
+    //                            index: self.index,
+    //                        })
+    //                    }
+    //                }
+    //                selection.push(clause);
+    //                match &self.tokens[self.index] {
+    //                    Token::Word(Word {
+    //                        keyword: KeyWord::And | KeyWord::Or,
+    //                        ..
+    //                    }) => {
+    //                        self.next_token();
+    //                    }
+    //                    _ => {
+    //                        break;
+    //                    }
+    //                }
+    //            }
+    //        }
+    //        _ => {}
+    //    }
+    //    Ok(selection)
+    //}
+
+
+
+
+
     pub fn get_clauses(&mut self) -> Result<Vec<Clause>, ParserError> {
         let mut selection: Vec<Clause> = Vec::new();
         match self.tokens[self.index] {
@@ -620,10 +724,23 @@ impl Parser /*<'a>*/ {
                     }
                 }
             }
-            _ => {}
+            _ => {/*in case there is no where the execution continues*/}
         }
         Ok(selection)
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 // insert into users values('fez', 'zefzef' ,'fzefze');
