@@ -77,5 +77,3 @@ fn main() -> rustyline::Result<()> {
 
     Ok(())
 }
-
-
