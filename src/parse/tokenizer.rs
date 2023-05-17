@@ -40,7 +40,7 @@ pub enum KeyWord {
 pub enum Token {
     EOF,
     Word(Word),
-    //Number(String ,bool),
+    Number(String ,bool),
     Char(char),
     SingleQuotedString(String),
     Comma,
@@ -102,7 +102,7 @@ impl fmt::Display for Token {
         match self {
             Token::EOF => f.write_str("EOF"),
             Token::Word(ref w) => write!(f, "{:?}", w),
-            //Token::Number(ref n, l) => write!(f, "{}{long}", n, long = if *l { "L" } else { "" }),
+            Token::Number(ref n, l) => write!(f, "{}{long}", n, long = if *l { "L" } else { "" }),
             Token::Char(ref c) => write!(f, "{}", c),
             Token::SingleQuotedString(ref s) => write!(f, "'{}'", s),
             Token::Comma => f.write_str(","),
@@ -193,7 +193,6 @@ impl<'a> Tokenizer<'a> {
                     '\'' => self.tokenize_single_quote_string(chars),
                     ',' => self.consume_and_return(chars, Token::Comma),
                     '=' => {
-                        //self.consume_and_return(chars, Token::Eq)
                         chars.next();
                         match chars.peek() {
                             Some('=') => self.consume_and_return(chars, Token::DoubleEq),
@@ -201,7 +200,6 @@ impl<'a> Tokenizer<'a> {
                         }
                     }
                     '!' => {
-                        //self.consume_and_return(chars, Token::Eq)
                         chars.next();
                         match chars.peek() {
                             Some('=') => self.consume_and_return(chars, Token::Neq),
@@ -236,13 +234,35 @@ impl<'a> Tokenizer<'a> {
                     '{' => self.consume_and_return(chars, Token::LBrace),
                     '}' => self.consume_and_return(chars, Token::RBrace),
                     _ => {
-                        let word = self.tokenize_word(chars);
-                        Ok(Some(Token::Word(word)))
+                        let word: Word = self.tokenize_word(chars);
+                        // check if number
+                        match self.is_number(&word){
+                            true => Ok(Some(Token::Word(word))),
+                            false => Ok(Some(Token::Word(word)))
+                        }
+                        
                     }
                 }
             }
             None => Ok(None),
         }
+    }
+
+    fn is_number(&self, word: &Word) -> bool {
+        let chars = word.value.chars();
+        println!("is nooooooooooooot number*/***********************************{:?}", chars);
+
+        for char in chars {
+            print_type_of(&char);
+            print_type_of(&'0');
+            println!("i+++++++++++++++++++++++++****{}", char);
+            if char != '0' || char != '1' || char != '2' || char != '3' || char != '4' || char != '5' || char != '6' || char != '7' || char != '8' || char != '9' || char != '.' {
+                println!("is nooooooooooooot number*/***********************************{}", char);
+                //return false
+            }
+        }
+        println!("is number*/***********************************");
+        true
     }
 
     fn consume_and_return(
@@ -434,4 +454,7 @@ impl<'a> Tokenizer<'a> {
 
         word
     }
+}
+fn print_type_of<T>(_: &T) {
+    println!("{:?}", std::any::type_name::<T>())
 }

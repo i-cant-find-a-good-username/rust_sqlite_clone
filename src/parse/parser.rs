@@ -467,6 +467,29 @@ impl Parser /*<'a>*/ {
                             _ => return Err(self.return_error("no default value"))
                         }
                         self.next_token();
+                        let is_valid_type: bool = match column.data_type {
+                            DataType::Integer => self.check_value_type(DataType::Integer),
+                            DataType::Float   => self.check_value_type(DataType::Float),
+                            DataType::Boolean => self.check_value_type(DataType::Boolean),
+                            DataType::Text    => self.check_value_type(DataType::Text),
+                            DataType::Null    => self.check_value_type(DataType::Null),
+                        };
+                        if is_valid_type {
+
+                        }else{
+                            return Err(self.return_error("invalid default type"))
+                        }
+                        //here get the default value
+                        //match &self.tokens[self.index] {
+                        //    Token::LParen => {},
+                        //    _ => return Err(self.return_error("no default value"))
+                        //}
+                        //self.next_token();
+                        match &self.tokens[self.index] {
+                            Token::RParen => {},
+                            _ => return Err(self.return_error("default value not closed"))
+                        }
+                        self.next_token();
                     },
                     _ => return Err(self.return_error("string values must be qouted"))
                 }
@@ -485,8 +508,6 @@ impl Parser /*<'a>*/ {
 
 
 
-
-
         println!("create_");
         self.next_token();
         Ok(Statement::CreateTable {
@@ -498,6 +519,11 @@ impl Parser /*<'a>*/ {
 
 
 
+
+    pub fn check_value_type(&self, data_type: DataType) -> bool{
+
+        true
+    }
 
 
 
