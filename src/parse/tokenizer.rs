@@ -33,8 +33,8 @@ pub enum KeyWord {
     Min,
     NotNull,
     AutoIncrement,
-    NotAKeyword,
-    PrimaryKey
+    PrimaryKey,
+    NotAKeyword
 }
 #[derive(Debug, PartialEq)]
 pub enum Token {
