@@ -112,7 +112,14 @@ impl Parser /*<'a>*/ {
     pub fn parse(query: String) -> Result<Vec<Statement>, ParserError> {
         let mut new_tokenizer = tokenizer::Tokenizer::new(&query);
         // might need error handling
-        let tokens = new_tokenizer.tokenize().unwrap();
+        let tokens = match new_tokenizer.tokenize(){
+            Ok(value) => value,
+            Err(err) => return Err(ParserError {
+                message: err.message,
+                index: err.col as usize,
+            }),
+        };
+
         println!("{:?}", tokens);
         let mut parser = Parser::new(tokens);
         let mut statements: Vec<Statement> = Vec::new();
@@ -145,15 +152,9 @@ impl Parser /*<'a>*/ {
                 KeyWord::Delete => Ok(self.delete_statement()),
                 KeyWord::Create => Ok(self.create_statement()),
                 KeyWord::Drop => Ok(self.drop_statement()),
-                _ => Err(ParserError {
-                    message: "no keyword".to_string(),
-                    index: self.index,
-                }),
+                _ => return Err(self.return_error("no keywords"))
             },
-            _ => Err(ParserError {
-                message: "idk what the error".to_string(),
-                index: self.index,
-            }),
+            _ => return Err(self.return_error("idk the error"))
         }
     }
 
@@ -171,7 +172,7 @@ impl Parser /*<'a>*/ {
                 Token::LParen => {
                     cols = self.get_words_in_paren()?;
                 }
-                _ => return Err(self.return_error("columns are reqzefzefzefuired"))
+                _ => return Err(self.return_error("columns are req"))
             },
         }
 
@@ -796,6 +797,7 @@ impl Parser /*<'a>*/ {
                             clause.value = value.to_string();
                             self.next_token();
                         }
+                        // numbers too
                         _ => return Err(self.return_error("values must be qouted"))
                     }
                     selection.push(clause);

@@ -36,10 +36,16 @@ pub enum KeyWord {
     PrimaryKey,
     NotAKeyword
 }
+#[derive(Debug)]
+pub enum Type{
+    Float,
+    Integer
+}
 #[derive(Debug, PartialEq)]
 pub enum Token {
     EOF,
     Word(Word),
+    // bool for positivity => true: +, false: -
     Number(String ,bool),
     Char(char),
     SingleQuotedString(String),
@@ -221,7 +227,23 @@ impl<'a> Tokenizer<'a> {
                         }
                     }
                     '+' => self.consume_and_return(chars, Token::Plus),
-                    '-' => self.consume_and_return(chars, Token::Minus),
+                    '-' => {
+                        chars.next();
+                        match chars.peek() {
+                            Some(' ') => self.consume_and_return(chars, Token::Minus),
+                            Some('\t') => self.consume_and_return(chars, Token::Minus),
+                            Some('\n') => self.consume_and_return(chars, Token::Minus),
+                            _ => {
+                                let word: Word = self.tokenize_word(chars);
+                                println!("------------------{:?}",  word);
+
+                                match self.is_number(&word){
+                                    true => Ok(Some(Token::Number(word.value, false))),
+                                    false => return Err(TokenizerError{message: "seperate - from words".to_string(), col: 5, line: 10}) //token error here
+                                }
+                            },
+                        }
+                    },
                     '*' => self.consume_and_return(chars, Token::Mul),
                     '/' => self.consume_and_return(chars, Token::Div),
                     '%' => self.consume_and_return(chars, Token::Mod),
@@ -235,12 +257,10 @@ impl<'a> Tokenizer<'a> {
                     '}' => self.consume_and_return(chars, Token::RBrace),
                     _ => {
                         let word: Word = self.tokenize_word(chars);
-                        // check if number
                         match self.is_number(&word){
-                            true => Ok(Some(Token::Word(word))),
+                            true => Ok(Some(Token::Number(word.value, true))),
                             false => Ok(Some(Token::Word(word)))
                         }
-                        
                     }
                 }
             }
@@ -249,19 +269,19 @@ impl<'a> Tokenizer<'a> {
     }
 
     fn is_number(&self, word: &Word) -> bool {
-        let chars = word.value.chars();
-        println!("is nooooooooooooot number*/***********************************{:?}", chars);
+        let mut chars = word.value.chars();
+        println!("------------------{:?}",  chars.nth(0));
 
+      
+        
         for char in chars {
-            print_type_of(&char);
-            print_type_of(&'0');
-            println!("i+++++++++++++++++++++++++****{}", char);
-            if char != '0' || char != '1' || char != '2' || char != '3' || char != '4' || char != '5' || char != '6' || char != '7' || char != '8' || char != '9' || char != '.' {
-                println!("is nooooooooooooot number*/***********************************{}", char);
-                //return false
+            println!("{:?}", char);
+            if char != '0' && char != '1' && char != '2' && char != '3' && char != '4' && char != '5' && char != '6' && char != '7' && char != '8' && char != '9' && char != '.' {
+            println!("false returned {:?}", char);
+
+                return false
             }
         }
-        println!("is number*/***********************************");
         true
     }
 
@@ -454,7 +474,4 @@ impl<'a> Tokenizer<'a> {
 
         word
     }
-}
-fn print_type_of<T>(_: &T) {
-    println!("{:?}", std::any::type_name::<T>())
 }
