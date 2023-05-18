@@ -1,6 +1,5 @@
 use std::{fmt, iter::Peekable, str::Chars};
 #[derive(Debug, PartialEq)]
-
 pub enum KeyWord {
     Select,
     Insert,
@@ -38,11 +37,7 @@ pub enum KeyWord {
     PrimaryKey,
     NotAKeyword
 }
-#[derive(Debug)]
-pub enum Type{
-    Float,
-    Integer
-}
+
 #[derive(Debug, PartialEq)]
 pub enum Token {
     EOF,

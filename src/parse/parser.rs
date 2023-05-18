@@ -495,7 +495,7 @@ impl Parser /*<'a>*/ {
                     self.next_token();
                     columns.push(column);
                     break;
-                } 
+                }
             }
             if self.tokens[self.index] == Token::RParen {
                 self.next_token();
