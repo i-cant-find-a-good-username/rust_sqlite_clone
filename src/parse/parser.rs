@@ -397,35 +397,6 @@ impl Parser /*<'a>*/ {
             );
         */
 
-//
-//pub struct ColumnDef {
-//    pub name: String,
-//    pub data_type: DataType,
-//    pub options: Vec<ColumnOptions>,
-//}
-//
-//pub struct Selection {
-//    column: ColumnDef,
-//    value: DataType, // changing type
-//}
-//
-//pub enum DataType {
-//    Text(u32),    //lenght
-//    Integer(u32), //lenght
-//    Float(u32),   //lenght
-//    Null,
-//}
-//
-//#[derive(Debug)]
-////pub enum ColumnOptions {
-//    NotNull,
-//    Default(),
-//    Unique { is_primary: bool },
-//    Check(Selection),
-//}
-
-
-
         self.next_token();
         self.confirm_keyword(KeyWord::Table)?;
         // table name
@@ -454,18 +425,18 @@ impl Parser /*<'a>*/ {
                 Token::Word(Word { keyword: KeyWord::Float,   .. }) => column.data_type = DataType::Float,
                 Token::Word(Word { keyword: KeyWord::Boolean, .. }) => column.data_type = DataType::Boolean,
                 Token::Word(Word { keyword: KeyWord::Text,    .. }) => column.data_type = DataType::Text,
-                Token::Word(Word { keyword: KeyWord::Null,    .. }) => column.data_type = DataType::Null,
-                _ => return Err(self.return_error("col type req"))
+                //Token::Word(Word { keyword: KeyWord::Null,    .. }) => column.data_type = DataType::Null,
+                _ => return Err(self.return_error("col type req [integer, float, boolean, text]"))
             }
             self.next_token();
+            let mut column_options: Vec<ColumnOptions> = Vec::new();
             loop{
-                let mut column_options: Vec<ColumnOptions> = Vec::new();
-                println!("{:?}",&self.tokens[self.index]  );
                 match &self.tokens[self.index] {
                     Token::Word(Word { keyword: KeyWord::PrimaryKey,    .. }) => column_options.push(ColumnOptions::PrimaryKey),
                     Token::Word(Word { keyword: KeyWord::NotNull,       .. }) => column_options.push(ColumnOptions::NotNull),
                     Token::Word(Word { keyword: KeyWord::AutoIncrement, .. }) => column_options.push(ColumnOptions::AutoIncrement),
                     Token::Word(Word { keyword: KeyWord::Default,       .. }) => {
+                        self.next_token();
                         match &self.tokens[self.index] {
                             Token::LParen => {},
                             _ => return Err(self.return_error("no default value"))
@@ -475,28 +446,29 @@ impl Parser /*<'a>*/ {
                             DataType::Integer => {
                                 match &self.tokens[self.index]{
                                     Token::Number(s, b) => column_options.push(ColumnOptions::Default(s.to_string())),
-                                    _ => return Err(self.return_error("wrong datatype for default"))
+                                    _ => return Err(self.return_error("wrong datatype for default: expected integer"))
                                 }
                             },
                             DataType::Float => {
                                 match &self.tokens[self.index]{
                                     Token::Number(s, b) => column_options.push(ColumnOptions::Default(s.to_string())),
-                                    _ => return Err(self.return_error("wrong datatype for default"))
+                                    _ => return Err(self.return_error("wrong datatype for default: expected float"))
                                 }
                             },
                             DataType::Boolean => {
                                 match &self.tokens[self.index]{
                                     Token::Word(Word { keyword: KeyWord::True, .. }) => column_options.push(ColumnOptions::Default("true".to_string())),
                                     Token::Word(Word { keyword: KeyWord::False, .. }) => column_options.push(ColumnOptions::Default("false".to_string())),
-                                    _ => return Err(self.return_error("wrong datatype for default"))
+                                    _ => return Err(self.return_error("wrong datatype for default: expected true or false"))
                                 }
                             },
                             DataType::Text => {
                                 match &self.tokens[self.index]{
-                                    Token::Word(Word { value, .. }) => column_options.push(ColumnOptions::Default(value.to_string())),
-                                    _ => return Err(self.return_error("wrong datatype for default"))
+                                    Token::SingleQuotedString(value) => column_options.push(ColumnOptions::Default(value.to_string())), 
+                                    _ => return Err(self.return_error("wrong datatype for default: expected 'string'"))
                                 }
                             },
+                            // might remove
                             DataType::Null => {
                                 match &self.tokens[self.index]{
                                     Token::Number(s, b) => column_options.push(ColumnOptions::Default("".to_string())),
@@ -509,47 +481,35 @@ impl Parser /*<'a>*/ {
                             Token::RParen => {},
                             _ => return Err(self.return_error("default value not closed"))
                         }
-                        self.next_token();
                     },
                     _ => {
-                        println!("{:?}",&self.tokens[self.index]  );
-                        return Err(self.return_error("invalid column option"))
+                        return Err(self.return_error(&format!("invalid column option {}", &self.tokens[self.index])))
                     }
                 }
+                //self.next_token();
                 self.next_token();
-                println!("inside inside loop");
-                if &self.tokens[self.index] == &Token::Comma {
+                if self.tokens[self.index] == Token::Comma {
+                    if column_options.len() > 0 {
+                        column.options = Some(column_options)
+                    }
                     self.next_token();
+                    columns.push(column);
                     break;
                 } 
             }
-            println!("inside loop");
-            if &self.tokens[self.index] == &Token::Comma {
+            if self.tokens[self.index] == Token::RParen {
+                self.next_token();
                 break;
             }
         }
 
+        self.finalize_query()?;
 
-
-
-
-        println!("create_");
-        self.next_token();
         Ok(Statement::CreateTable {
             name,
             columns
         })
     }
-
-
-
-
-
-    pub fn check_value_type(&self, data_type: DataType) -> bool{
-
-        true
-    }
-
 
 
 
@@ -634,6 +594,10 @@ impl Parser /*<'a>*/ {
                     values.push(value.to_string());
                     self.next_token();
                 }
+                Token::Number(value, sign) => {
+                    values.push(value.to_string());
+                    self.next_token();
+                }
                 Token::Comma => self.next_token(),
                 Token::RParen => {
                     self.next_token();
@@ -649,7 +613,7 @@ impl Parser /*<'a>*/ {
         self.index += 1;
         loop {
             match &self.tokens[self.index] {
-                Token::Comma => self.index += 1,
+                //Token::Comma => self.index += 1,
                 Token::Whitespace(Whitespace::Space) => self.index += 1,
                 Token::Whitespace(Whitespace::Newline) => self.index += 1,
                 Token::Whitespace(Whitespace::Tab) => self.index += 1,
