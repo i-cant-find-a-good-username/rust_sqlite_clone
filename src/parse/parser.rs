@@ -56,7 +56,7 @@ pub enum ColumnOptions {
     AutoIncrement,
     PrimaryKey,
     NotNull,
-    Default(),
+    Default(String),
     Unique,
 }
 
@@ -426,9 +426,11 @@ impl Parser /*<'a>*/ {
 
 
 
+        self.next_token();
         self.confirm_keyword(KeyWord::Table)?;
         // table name
         let name = self.get_object_name()??;
+        self.next_token();
         
 
 
@@ -436,14 +438,14 @@ impl Parser /*<'a>*/ {
 
 
         loop{
-            let mut column = ColumnDef{ name, data_type: todo!(), options: todo!() };
+            let mut column = ColumnDef{ name: name.to_string(), data_type: DataType::Null, options: None };
             // get col name
             match &self.tokens[self.index] {
                 Token::Word(Word {
                     value: col_name,
                     ..
                 }) => column.name = col_name.to_string(),
-                _ => return Err(self.return_error("col name is req"))
+                _ => return Err(self.return_error("col name is required"))
             }
             self.next_token();
             // get datatype
@@ -458,6 +460,7 @@ impl Parser /*<'a>*/ {
             self.next_token();
             loop{
                 let mut column_options: Vec<ColumnOptions> = Vec::new();
+                println!("{:?}",&self.tokens[self.index]  );
                 match &self.tokens[self.index] {
                     Token::Word(Word { keyword: KeyWord::PrimaryKey,    .. }) => column_options.push(ColumnOptions::PrimaryKey),
                     Token::Word(Word { keyword: KeyWord::NotNull,       .. }) => column_options.push(ColumnOptions::NotNull),
@@ -468,38 +471,59 @@ impl Parser /*<'a>*/ {
                             _ => return Err(self.return_error("no default value"))
                         }
                         self.next_token();
-                        let is_valid_type: bool = match column.data_type {
-                            DataType::Integer => self.check_value_type(DataType::Integer),
-                            DataType::Float   => self.check_value_type(DataType::Float),
-                            DataType::Boolean => self.check_value_type(DataType::Boolean),
-                            DataType::Text    => self.check_value_type(DataType::Text),
-                            DataType::Null    => self.check_value_type(DataType::Null),
+                        match column.data_type {
+                            DataType::Integer => {
+                                match &self.tokens[self.index]{
+                                    Token::Number(s, b) => column_options.push(ColumnOptions::Default(s.to_string())),
+                                    _ => return Err(self.return_error("wrong datatype for default"))
+                                }
+                            },
+                            DataType::Float => {
+                                match &self.tokens[self.index]{
+                                    Token::Number(s, b) => column_options.push(ColumnOptions::Default(s.to_string())),
+                                    _ => return Err(self.return_error("wrong datatype for default"))
+                                }
+                            },
+                            DataType::Boolean => {
+                                match &self.tokens[self.index]{
+                                    Token::Word(Word { keyword: KeyWord::True, .. }) => column_options.push(ColumnOptions::Default("true".to_string())),
+                                    Token::Word(Word { keyword: KeyWord::False, .. }) => column_options.push(ColumnOptions::Default("false".to_string())),
+                                    _ => return Err(self.return_error("wrong datatype for default"))
+                                }
+                            },
+                            DataType::Text => {
+                                match &self.tokens[self.index]{
+                                    Token::Word(Word { value, .. }) => column_options.push(ColumnOptions::Default(value.to_string())),
+                                    _ => return Err(self.return_error("wrong datatype for default"))
+                                }
+                            },
+                            DataType::Null => {
+                                match &self.tokens[self.index]{
+                                    Token::Number(s, b) => column_options.push(ColumnOptions::Default("".to_string())),
+                                    _ => return Err(self.return_error("wrong datatype for default"))
+                                }
+                            },
                         };
-                        if is_valid_type {
-
-                        }else{
-                            return Err(self.return_error("invalid default type"))
-                        }
-                        //here get the default value
-                        //match &self.tokens[self.index] {
-                        //    Token::LParen => {},
-                        //    _ => return Err(self.return_error("no default value"))
-                        //}
-                        //self.next_token();
+                        self.next_token();
                         match &self.tokens[self.index] {
                             Token::RParen => {},
                             _ => return Err(self.return_error("default value not closed"))
                         }
                         self.next_token();
                     },
-                    _ => return Err(self.return_error("string values must be qouted"))
+                    _ => {
+                        println!("{:?}",&self.tokens[self.index]  );
+                        return Err(self.return_error("invalid column option"))
+                    }
                 }
+                self.next_token();
+                println!("inside inside loop");
                 if &self.tokens[self.index] == &Token::Comma {
+                    self.next_token();
                     break;
                 } 
             }
-            // idk if this is needded just to be safe
-            continue;
+            println!("inside loop");
             if &self.tokens[self.index] == &Token::Comma {
                 break;
             }
@@ -641,8 +665,7 @@ impl Parser /*<'a>*/ {
                 self.next_token();
                 return Ok(());
             } else {
-                println!("fuck you");
-                return Err(self.return_error("no from"))
+                return Err(self.return_error("unexpected keyword"))
             }
         }
         return Err(self.return_error("no keyword"))

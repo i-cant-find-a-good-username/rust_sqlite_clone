@@ -17,6 +17,8 @@ pub enum KeyWord {
     And,
     Or,
     Not,
+    True,
+    False,
     Null,
     Integer,
     Float,
@@ -168,7 +170,7 @@ impl<'a> Tokenizer<'a> {
         let mut peekable = self.query.chars().peekable();
         let mut tokens: Vec<Token> = Vec::new();
 
-        while let Some(token) = self.next_token(&mut peekable)? {
+        while let Some(token) = self. next_token(&mut peekable)? {
             match &token {
                 Token::Whitespace(Whitespace::Newline) => {
                     self.line += 1;
@@ -235,8 +237,6 @@ impl<'a> Tokenizer<'a> {
                             Some('\n') => self.consume_and_return(chars, Token::Minus),
                             _ => {
                                 let word: Word = self.tokenize_word(chars);
-                                println!("------------------{:?}",  word);
-
                                 match self.is_number(&word){
                                     true => Ok(Some(Token::Number(word.value, false))),
                                     false => return Err(TokenizerError{message: "seperate - from words".to_string(), col: 5, line: 10}) //token error here
@@ -270,15 +270,8 @@ impl<'a> Tokenizer<'a> {
 
     fn is_number(&self, word: &Word) -> bool {
         let mut chars = word.value.chars();
-        println!("------------------{:?}",  chars.nth(0));
-
-      
-        
         for char in chars {
-            println!("{:?}", char);
             if char != '0' && char != '1' && char != '2' && char != '3' && char != '4' && char != '5' && char != '6' && char != '7' && char != '8' && char != '9' && char != '.' {
-            println!("false returned {:?}", char);
-
                 return false
             }
         }
@@ -397,6 +390,14 @@ impl<'a> Tokenizer<'a> {
             "not" => Word {
                 value: s,
                 keyword: KeyWord::Not,
+            },
+            "true" => Word {
+                value: s,
+                keyword: KeyWord::True,
+            },
+            "false" => Word {
+                value: s,
+                keyword: KeyWord::False,
             },
             "null" => Word {
                 value: s,
