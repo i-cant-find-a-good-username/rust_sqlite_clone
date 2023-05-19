@@ -1,16 +1,14 @@
+pub mod operations;
 pub mod parser;
 pub mod tokenizer;
-pub mod operations;
 //pub crate::database::database::has_table;
 
-use parser::{Statement, ParserError, DataType};
-
-
+use parser::{DataType, ParserError, Statement};
 
 pub fn parse(command: String) -> Result<Vec<Statement>, ParserError> {
     // this bclock is returned
     //parser::Parser::new(command);
-    let result = match parser::Parser::parse(command){
+    let result = match parser::Parser::parse(command) {
         Ok(result) => {
             // validate
             //for statment in result {
@@ -24,42 +22,71 @@ pub fn parse(command: String) -> Result<Vec<Statement>, ParserError> {
             //    }
             //}
             Ok(result)
-        },
-        Err(err) => Err(err)
+        }
+        Err(err) => Err(err),
     };
 
     result
 }
 
-
-
-
-
 // check table exist
 // check if selected cols exist
 // check conditions cols correct and correct types
-fn validate_select() {}
+fn validate_select(table_name: String) -> Result<String, String> {
+    match check_table_exist("table_name".to_string()){
+        true => Ok(String::from("dazdazd")),
+        false => return Err(String::from("table doesnt exist"))
+    }
+}
 // check table exist
 // validate selected cols if exist
 // validate values and thier types
-fn validate_insert() {}
+fn validate_insert(table_name: String) -> Result<String, String> {
+    match check_table_exist("table_name".to_string()){
+        true => {
+            Ok(String::from("dazdazd"))
+        },
+        false => return Err(String::from("table doesnt exist"))
+    }
+}
 // check table exist
 // validate selected cols if exist
 // validate values and thier types
-fn validate_update() {}
+fn validate_update(table_name: String) -> Result<String, String> {
+    match check_table_exist("table_name".to_string()){
+        true => Ok(String::from("dazdazd")),
+        false => return Err(String::from("table doesnt exist"))
+    }
+}
 // check table exist
 // validate selected cols if exist
 // validate values and thier types
-fn validate_delete() {}
+fn validate_delete(table_name: String) -> Result<String, String> {
+    match check_table_exist("table_name".to_string()){
+        true => Ok(String::from("dazdazd")),
+        false => return Err(String::from("table doesnt exist"))
+    }
+}
 // check table exist
-fn validate_create() {}
-fn validate_drop()   {}
-
-
-
-
-
-
+fn validate_create(table_name: String) -> Result<String, String> {
+    match check_table_exist("table_name".to_string()){
+        true => return Err(String::from("table already exists")),
+        false => Ok(String::from("dazdazd"))
+    }
+}
+fn validate_drop(table_name: String) -> Result<String, String>{
+    match check_table_exist("table_name".to_string()){
+        true => {
+            //let table = Table::new();
+            //table.show_table_structure();
+            // create table
+            // show table structure
+            // add table to database
+            Ok(String::from("dazdazd"))
+        },
+        false => return Err(String::from("table doesnt exist"))
+    }
+}
 
 fn check_table_exist(table_name: String) -> bool {
     false

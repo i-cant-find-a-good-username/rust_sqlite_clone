@@ -9,7 +9,6 @@ struct DatabaseMetaData {
     locked: bool,
 }
 
-
 struct Database {
     name: String,
     tables: HashMap<String, Table>,
@@ -17,9 +16,9 @@ struct Database {
 
 impl Database {
     fn new(name: String) -> Database {
-        Database{
+        Database {
             name,
-            tables: HashMap::new()
+            tables: HashMap::new(),
         }
     }
 
@@ -28,18 +27,17 @@ impl Database {
     }
 
     fn has_table(&self, table_name: String) -> bool {
-        match self.tables.get(&table_name){
-            Some( .. ) => true,
-            None => false
-        }
+        //match self.tables.get(&table_name){
+        //    Some( .. ) => true,
+        //    None => false
+        //}
+        true
     }
     fn create_table(&self, table_name: String) -> bool {
         false
     }
 
-    fn get_table() {
-
-    }
+    fn get_table() {}
 }
 
 //create table test(

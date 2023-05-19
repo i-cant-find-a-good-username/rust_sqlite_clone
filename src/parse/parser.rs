@@ -7,11 +7,8 @@ pub struct ColumnDef {
     pub primary_key: bool,
     pub auto_increment: bool,
     pub not_null: bool,
-    pub default: String
-    //pub options: Option<Vec<ColumnOptions>>,
+    pub default: String, //pub options: Option<Vec<ColumnOptions>>,
 }
-
-
 
 //pub struct Clause {
 //    left: BinOp,
@@ -24,7 +21,6 @@ pub struct ColumnDef {
 //    right: String,
 //}
 //struct nested(BinOp);
-
 
 #[derive(Debug)]
 pub struct Clause {
@@ -44,13 +40,11 @@ pub enum DataType {
     Text,    //lenght
     Integer, //lenght
     Float,   //lenght
-    Boolean,   //lenght
+    Boolean, //lenght
     Null,
 }
 
-
 #[derive(Debug)]
-
 pub enum ObjectType {
     Table,
 }
@@ -116,12 +110,14 @@ impl Parser /*<'a>*/ {
     pub fn parse(query: String) -> Result<Vec<Statement>, ParserError> {
         let mut new_tokenizer = tokenizer::Tokenizer::new(&query);
         // might need error handling
-        let tokens = match new_tokenizer.tokenize(){
+        let tokens = match new_tokenizer.tokenize() {
             Ok(value) => value,
-            Err(err) => return Err(ParserError {
-                message: err.message,
-                index: err.col as usize,
-            }),
+            Err(err) => {
+                return Err(ParserError {
+                    message: err.message,
+                    index: err.col as usize,
+                })
+            }
         };
 
         let mut parser = Parser::new(tokens);
@@ -155,9 +151,9 @@ impl Parser /*<'a>*/ {
                 KeyWord::Delete => Ok(self.delete_statement()),
                 KeyWord::Create => Ok(self.create_statement()),
                 KeyWord::Drop => Ok(self.drop_statement()),
-                _ => return Err(self.return_error("no keywords"))
+                _ => return Err(self.return_error("no keywords")),
             },
-            _ => return Err(self.return_error("idk the error"))
+            _ => return Err(self.return_error("idk the error")),
         }
     }
 
@@ -175,7 +171,7 @@ impl Parser /*<'a>*/ {
                 Token::LParen => {
                     cols = self.get_words_in_paren()?;
                 }
-                _ => return Err(self.return_error("columns are req"))
+                _ => return Err(self.return_error("columns are req")),
             },
         }
 
@@ -227,7 +223,7 @@ impl Parser /*<'a>*/ {
                 }
                 values = self.get_values_in_paren()?;
             }
-            _ => return Err(self.return_error("invalid syntax after table name"))
+            _ => return Err(self.return_error("invalid syntax after table name")),
         };
 
         if all == false {
@@ -239,7 +235,7 @@ impl Parser /*<'a>*/ {
                     self.next_token();
                     values = self.get_values_in_paren()?;
                 }
-                _ => return Err(self.return_error("invalid syntax after table name"))
+                _ => return Err(self.return_error("invalid syntax after table name")),
             };
         }
 
@@ -276,21 +272,20 @@ impl Parser /*<'a>*/ {
                             allocation.column = col.to_string();
                             self.next_token();
                         }
-                        _ => return Err(self.return_error("column name wher error"))
+                        _ => return Err(self.return_error("column name wher error")),
                     }
                     match &self.tokens[self.index] {
                         Token::Eq => {
                             self.next_token();
                         }
-                        _ => return Err(self.return_error("no = sign"))
-
+                        _ => return Err(self.return_error("no = sign")),
                     }
                     match &self.tokens[self.index] {
                         Token::SingleQuotedString(value) => {
                             allocation.value = value.to_string();
                             self.next_token();
                         }
-                        _ => return Err(self.return_error("string values must be qouted"))
+                        _ => return Err(self.return_error("string values must be qouted")),
                     }
                     allocations.push(allocation);
                     match &self.tokens[self.index] {
@@ -329,7 +324,7 @@ impl Parser /*<'a>*/ {
         self.finalize_query()?;
 
         if clauses.len() == 0 {
-            return Err(self.return_error("conditions required"))
+            return Err(self.return_error("conditions required"));
         }
 
         Ok(Statement::Delete {
@@ -349,11 +344,11 @@ impl Parser /*<'a>*/ {
                     drop.push(value.to_string());
                     self.next_token();
                 }
-                _ => return Err(self.return_error("invalid syntax after table name"))
+                _ => return Err(self.return_error("invalid syntax after table name")),
             };
         }
         if drop.len() == 0 {
-            return Err(self.return_error("nothing selected"))
+            return Err(self.return_error("nothing selected"));
         }
         self.finalize_query()?;
 
@@ -363,34 +358,8 @@ impl Parser /*<'a>*/ {
         })
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     pub fn create_statement(&mut self) -> Result<Statement, ParserError> {
-        /* 
+        /*
             create table users (
                 id integer primary_key,
                 username text not_null,
@@ -403,88 +372,132 @@ impl Parser /*<'a>*/ {
         // table name
         let name = self.get_object_name()??;
         self.next_token();
-        
-
 
         let mut columns: Vec<ColumnDef> = Vec::new();
 
-
-        loop{
-            let mut column = ColumnDef{ name: name.to_string(), data_type: DataType::Null, primary_key: false, auto_increment: false, not_null: false, default: String::new() };
+        loop {
+            let mut column = ColumnDef {
+                name: name.to_string(),
+                data_type: DataType::Null,
+                primary_key: false,
+                auto_increment: false,
+                not_null: false,
+                default: String::new(),
+            };
             // get col name
             match &self.tokens[self.index] {
                 Token::Word(Word {
-                    value: col_name,
-                    ..
+                    value: col_name, ..
                 }) => column.name = col_name.to_string(),
-                _ => return Err(self.return_error("col name is required"))
+                _ => return Err(self.return_error("col name is required")),
             }
             self.next_token();
             // get datatype
             match &self.tokens[self.index] {
-                Token::Word(Word { keyword: KeyWord::Integer, .. }) => column.data_type = DataType::Integer,
-                Token::Word(Word { keyword: KeyWord::Float,   .. }) => column.data_type = DataType::Float,
-                Token::Word(Word { keyword: KeyWord::Boolean, .. }) => column.data_type = DataType::Boolean,
-                Token::Word(Word { keyword: KeyWord::Text,    .. }) => column.data_type = DataType::Text,
+                Token::Word(Word {
+                    keyword: KeyWord::Integer,
+                    ..
+                }) => column.data_type = DataType::Integer,
+                Token::Word(Word {
+                    keyword: KeyWord::Float,
+                    ..
+                }) => column.data_type = DataType::Float,
+                Token::Word(Word {
+                    keyword: KeyWord::Boolean,
+                    ..
+                }) => column.data_type = DataType::Boolean,
+                Token::Word(Word {
+                    keyword: KeyWord::Text,
+                    ..
+                }) => column.data_type = DataType::Text,
                 //Token::Word(Word { keyword: KeyWord::Null,    .. }) => column.data_type = DataType::Null,
-                _ => return Err(self.return_error("col type req [integer, float, boolean, text]"))
+                _ => return Err(self.return_error("col type req [integer, float, boolean, text]")),
             }
             self.next_token();
             //let mut column_options: Vec<ColumnOptions> = Vec::new();
-            loop{
+            loop {
                 match &self.tokens[self.index] {
-                    Token::Word(Word { keyword: KeyWord::PrimaryKey,    .. }) => column.primary_key = true,
-                    Token::Word(Word { keyword: KeyWord::NotNull,       .. }) => column.not_null = true,
-                    Token::Word(Word { keyword: KeyWord::AutoIncrement, .. }) => column.auto_increment = true,
-                    Token::Word(Word { keyword: KeyWord::Default,       .. }) => {
+                    Token::Word(Word {
+                        keyword: KeyWord::PrimaryKey,
+                        ..
+                    }) => column.primary_key = true,
+                    Token::Word(Word {
+                        keyword: KeyWord::NotNull,
+                        ..
+                    }) => column.not_null = true,
+                    Token::Word(Word {
+                        keyword: KeyWord::AutoIncrement,
+                        ..
+                    }) => column.auto_increment = true,
+                    Token::Word(Word {
+                        keyword: KeyWord::Default,
+                        ..
+                    }) => {
                         self.next_token();
                         match &self.tokens[self.index] {
-                            Token::LParen => {},
-                            _ => return Err(self.return_error("no default value"))
+                            Token::LParen => {}
+                            _ => return Err(self.return_error("no default value")),
                         }
                         self.next_token();
                         match column.data_type {
-                            DataType::Integer => {
-                                match &self.tokens[self.index]{
-                                    Token::Number(s, b) => column.default = "true".to_string(),
-                                    _ => return Err(self.return_error("wrong datatype for default: expected integer"))
+                            DataType::Integer => match &self.tokens[self.index] {
+                                Token::Number(s, b) => column.default = "true".to_string(),
+                                _ => {
+                                    return Err(self.return_error(
+                                        "wrong datatype for default: expected integer",
+                                    ))
                                 }
                             },
-                            DataType::Float => {
-                                match &self.tokens[self.index]{
-                                    Token::Number(s, b) => column.default = s.to_string(),
-                                    _ => return Err(self.return_error("wrong datatype for default: expected float"))
+                            DataType::Float => match &self.tokens[self.index] {
+                                Token::Number(s, b) => column.default = s.to_string(),
+                                _ => {
+                                    return Err(self.return_error(
+                                        "wrong datatype for default: expected float",
+                                    ))
                                 }
                             },
-                            DataType::Boolean => {
-                                match &self.tokens[self.index]{
-                                    Token::Word(Word { keyword: KeyWord::True, .. }) => column.default = "true".to_string(),
-                                    Token::Word(Word { keyword: KeyWord::False, .. }) => column.default = "false".to_string(),
-                                    _ => return Err(self.return_error("wrong datatype for default: expected true or false"))
+                            DataType::Boolean => match &self.tokens[self.index] {
+                                Token::Word(Word {
+                                    keyword: KeyWord::True,
+                                    ..
+                                }) => column.default = "true".to_string(),
+                                Token::Word(Word {
+                                    keyword: KeyWord::False,
+                                    ..
+                                }) => column.default = "false".to_string(),
+                                _ => {
+                                    return Err(self.return_error(
+                                        "wrong datatype for default: expected true or false",
+                                    ))
                                 }
                             },
-                            DataType::Text => {
-                                match &self.tokens[self.index]{
-                                    Token::SingleQuotedString(value) => column.default = value.to_string(), 
-                                    _ => return Err(self.return_error("wrong datatype for default: expected 'string'"))
+                            DataType::Text => match &self.tokens[self.index] {
+                                Token::SingleQuotedString(value) => {
+                                    column.default = value.to_string()
+                                }
+                                _ => {
+                                    return Err(self.return_error(
+                                        "wrong datatype for default: expected 'string'",
+                                    ))
                                 }
                             },
                             // might remove
-                            DataType::Null => {
-                                match &self.tokens[self.index]{
-                                    Token::Number(s, b) => column.default = s.to_string(),
-                                    _ => return Err(self.return_error("wrong datatype for default"))
-                                }
+                            DataType::Null => match &self.tokens[self.index] {
+                                Token::Number(s, b) => column.default = s.to_string(),
+                                _ => return Err(self.return_error("wrong datatype for default")),
                             },
                         };
                         self.next_token();
                         match &self.tokens[self.index] {
-                            Token::RParen => {},
-                            _ => return Err(self.return_error("default value not closed"))
+                            Token::RParen => {}
+                            _ => return Err(self.return_error("default value not closed")),
                         }
-                    },
+                    }
                     _ => {
-                        return Err(self.return_error(&format!("invalid column option {}", &self.tokens[self.index])))
+                        return Err(self.return_error(&format!(
+                            "invalid column option {}",
+                            &self.tokens[self.index]
+                        )))
                     }
                 }
                 //self.next_token();
@@ -503,54 +516,16 @@ impl Parser /*<'a>*/ {
 
         self.finalize_query()?;
 
-        Ok(Statement::CreateTable {
-            name,
-            columns
-        })
+        Ok(Statement::CreateTable { name, columns })
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     // object is table_name col
     pub fn get_object_name(&mut self) -> Result<Result<String, ParserError>, ParserError> {
         let table_name: Result<String, ParserError> = match &mut self.tokens[self.index] {
             Token::Word(Word {
-                value: table_name,
-                ..
+                value: table_name, ..
             }) => Ok(table_name.to_string()),
-            _ => return Err(self.return_error("idk table name error"))
+            _ => return Err(self.return_error("idk table name error")),
         };
         self.next_token();
         Ok(table_name)
@@ -559,7 +534,7 @@ impl Parser /*<'a>*/ {
     pub fn finalize_query(&mut self) -> Result<(), ParserError> {
         match &mut self.tokens[self.index] {
             Token::SemiColon => return Ok(()),
-            _ => return Err(self.return_error("invalid syntax at the end"))
+            _ => return Err(self.return_error("invalid syntax at the end")),
         };
     }
 
@@ -577,7 +552,7 @@ impl Parser /*<'a>*/ {
                     self.next_token();
                     break;
                 }
-                _ => return Err(self.return_error("cols req"))
+                _ => return Err(self.return_error("cols req")),
             }
         }
         Ok(cols)
@@ -601,7 +576,7 @@ impl Parser /*<'a>*/ {
                     self.next_token();
                     break;
                 }
-                _ => return Err(self.return_error("values req"))
+                _ => return Err(self.return_error("values req")),
             }
         }
         Ok(values)
@@ -627,10 +602,10 @@ impl Parser /*<'a>*/ {
                 self.next_token();
                 return Ok(());
             } else {
-                return Err(self.return_error("unexpected keyword"))
+                return Err(self.return_error("unexpected keyword"));
             }
         }
-        return Err(self.return_error("no keyword"))
+        return Err(self.return_error("no keyword"));
     }
 
     pub fn check_file_end(&mut self) -> bool {
@@ -728,10 +703,6 @@ impl Parser /*<'a>*/ {
     //    Ok(selection)
     //}
 
-
-
-
-
     pub fn get_clauses(&mut self) -> Result<Vec<Clause>, ParserError> {
         let mut selection: Vec<Clause> = Vec::new();
         match self.tokens[self.index] {
@@ -751,7 +722,7 @@ impl Parser /*<'a>*/ {
                             clause.column = col.to_string();
                             self.next_token();
                         }
-                        _ => return Err(self.return_error("col name where error"))
+                        _ => return Err(self.return_error("col name where error")),
                     }
                     match &self.tokens[self.index] {
                         Token::Eq
@@ -775,7 +746,7 @@ impl Parser /*<'a>*/ {
                             }
                             self.next_token();
                         }
-                        _ => return Err(self.return_error("no = sign"))
+                        _ => return Err(self.return_error("no = sign")),
                     }
                     match &self.tokens[self.index] {
                         Token::SingleQuotedString(value) => {
@@ -783,7 +754,7 @@ impl Parser /*<'a>*/ {
                             self.next_token();
                         }
                         // numbers too
-                        _ => return Err(self.return_error("values must be qouted"))
+                        _ => return Err(self.return_error("values must be qouted")),
                     }
                     selection.push(clause);
                     match &self.tokens[self.index] {
@@ -799,15 +770,10 @@ impl Parser /*<'a>*/ {
                     }
                 }
             }
-            _ => {/*in case there is no where the execution continues*/}
+            _ => { /*in case there is no where the execution continues*/ }
         }
         Ok(selection)
     }
-
-
-
-
-
 
     pub fn return_error(&mut self, message: &str) -> ParserError {
         ParserError {
@@ -815,14 +781,6 @@ impl Parser /*<'a>*/ {
             index: self.index,
         }
     }
-
-
-
-
-
-
 }
 
 // insert into users values('fez', 'zefzef' ,'fzefze');
-
-

@@ -1,5 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
+use crate::parse::parser::Statement;
+
 enum DataType {
     Integer,
     String,
@@ -15,11 +17,6 @@ struct Table {
     primary_key: String,
 }
 
-struct Row {
-    name: String,
-    tables: HashMap<String, String>,
-}
-
 struct Column {
     name: String,
     data_type: DataType,
@@ -28,26 +25,20 @@ struct Column {
     nullable: bool,
 }
 
-
-
-
-
-
-
-
-
-
-
-
 impl Table {
-    
-    pub fn new(){
+    pub fn new(stmt: Statement) -> self {
+        let data = match stmt{
+            Statement::Insert { table_name, all, columns, values } => {
+                (table_name, all, columns, values)
+            },
+            _ => {panic!("wrong query type")}
+        };
+
+        if data.1 == true && data.2 == None {
+            
+        }
+
 
     }
-
-
-
-
-
-
+    pub fn show_table_structure() {}
 }

@@ -35,7 +35,7 @@ pub enum KeyWord {
     NotNull,
     AutoIncrement,
     PrimaryKey,
-    NotAKeyword
+    NotAKeyword,
 }
 
 #[derive(Debug, PartialEq)]
@@ -43,7 +43,7 @@ pub enum Token {
     EOF,
     Word(Word),
     // bool for positivity => true: +, false: -
-    Number(String ,bool),
+    Number(String, bool),
     Char(char),
     SingleQuotedString(String),
     Comma,
@@ -165,7 +165,7 @@ impl<'a> Tokenizer<'a> {
         let mut peekable = self.query.chars().peekable();
         let mut tokens: Vec<Token> = Vec::new();
 
-        while let Some(token) = self. next_token(&mut peekable)? {
+        while let Some(token) = self.next_token(&mut peekable)? {
             match &token {
                 Token::Whitespace(Whitespace::Newline) => {
                     self.line += 1;
@@ -232,13 +232,19 @@ impl<'a> Tokenizer<'a> {
                             Some('\n') => self.consume_and_return(chars, Token::Minus),
                             _ => {
                                 let word: Word = self.tokenize_word(chars);
-                                match self.is_number(&word){
+                                match self.is_number(&word) {
                                     true => Ok(Some(Token::Number(word.value, false))),
-                                    false => return Err(TokenizerError{message: "seperate - from words".to_string(), col: 5, line: 10}) //token error here
+                                    false => {
+                                        return Err(TokenizerError {
+                                            message: "seperate - from words".to_string(),
+                                            col: 5,
+                                            line: 10,
+                                        })
+                                    } //token error here
                                 }
-                            },
+                            }
                         }
-                    },
+                    }
                     '*' => self.consume_and_return(chars, Token::Mul),
                     '/' => self.consume_and_return(chars, Token::Div),
                     '%' => self.consume_and_return(chars, Token::Mod),
@@ -252,9 +258,9 @@ impl<'a> Tokenizer<'a> {
                     '}' => self.consume_and_return(chars, Token::RBrace),
                     _ => {
                         let word: Word = self.tokenize_word(chars);
-                        match self.is_number(&word){
+                        match self.is_number(&word) {
                             true => Ok(Some(Token::Number(word.value, true))),
-                            false => Ok(Some(Token::Word(word)))
+                            false => Ok(Some(Token::Word(word))),
                         }
                     }
                 }
@@ -266,8 +272,19 @@ impl<'a> Tokenizer<'a> {
     fn is_number(&self, word: &Word) -> bool {
         let mut chars = word.value.chars();
         for char in chars {
-            if char != '0' && char != '1' && char != '2' && char != '3' && char != '4' && char != '5' && char != '6' && char != '7' && char != '8' && char != '9' && char != '.' {
-                return false
+            if char != '0'
+                && char != '1'
+                && char != '2'
+                && char != '3'
+                && char != '4'
+                && char != '5'
+                && char != '6'
+                && char != '7'
+                && char != '8'
+                && char != '9'
+                && char != '.'
+            {
+                return false;
             }
         }
         true

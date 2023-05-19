@@ -1,5 +1,5 @@
-use crate::parse::parser::{Parser, ParserError, Statement};
 use crate::parse;
+use crate::parse::parser::{Parser, ParserError, Statement};
 #[derive(Debug)]
 pub enum SQLCommand {
     Insert(String),
@@ -30,17 +30,12 @@ impl SQLCommand {
 
 pub fn run_sql_command(command: String) -> Result<String, String> {
     match parse::parse(command.trim().to_string()) {
-        Ok(msg) => {
-            
-            return Ok(format!("{:?}", msg))
-        },
+        Ok(msg) => return Ok(format!("{:?}", msg)),
         Err(msg) => return Err(format!("{:?}", msg)),
     };
 
     // here we call the database and table on parsing success
 }
-
-
 
 //match Parser::parse(command.trim().to_string()) {
 //    Ok(msg) => return Ok(format!("{:?}", msg)),
