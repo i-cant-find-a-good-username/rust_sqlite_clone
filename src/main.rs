@@ -1,5 +1,6 @@
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
+use std::{env, process};
 use std::fmt::format;
 use std::io::prelude::*;
 use std::{collections::BTreeMap, fs::File};
@@ -25,6 +26,18 @@ use crate::parse::parser;
 //process_sql_command
 
 fn main() -> rustyline::Result<()> {
+
+    let args: Vec<String> = env::args().collect();
+    if args.len() == 1 {
+        println!("expected database file name");
+        process::exit(1)
+    }else if (args.len() > 2){
+        println!("unexpected arguments");
+        process::exit(1)
+    }
+
+    //read file
+
     //let mut rl = DefaultEditor::new()?;
     let config = get_config();
     let helper = REPLHelper::default();

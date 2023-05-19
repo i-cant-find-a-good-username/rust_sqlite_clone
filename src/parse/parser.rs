@@ -4,7 +4,11 @@ use super::tokenizer::{self, KeyWord, Token, Whitespace, Word};
 pub struct ColumnDef {
     pub name: String,
     pub data_type: DataType,
-    pub options: Option<Vec<ColumnOptions>>,
+    pub primary_key: bool,
+    pub auto_increment: bool,
+    pub not_null: bool,
+    pub default: String
+    //pub options: Option<Vec<ColumnOptions>>,
 }
 
 
@@ -120,7 +124,6 @@ impl Parser /*<'a>*/ {
             }),
         };
 
-        println!("{:?}", tokens);
         let mut parser = Parser::new(tokens);
         let mut statements: Vec<Statement> = Vec::new();
 
@@ -263,8 +266,6 @@ impl Parser /*<'a>*/ {
                 ..
             }) => {
                 self.next_token();
-                println!("{}", &self.tokens[self.index]);
-
                 loop {
                     let mut allocation = Allocation {
                         column: String::new(),
@@ -409,7 +410,7 @@ impl Parser /*<'a>*/ {
 
 
         loop{
-            let mut column = ColumnDef{ name: name.to_string(), data_type: DataType::Null, options: None };
+            let mut column = ColumnDef{ name: name.to_string(), data_type: DataType::Null, primary_key: false, auto_increment: false, not_null: false, default: String::new() };
             // get col name
             match &self.tokens[self.index] {
                 Token::Word(Word {
@@ -429,12 +430,12 @@ impl Parser /*<'a>*/ {
                 _ => return Err(self.return_error("col type req [integer, float, boolean, text]"))
             }
             self.next_token();
-            let mut column_options: Vec<ColumnOptions> = Vec::new();
+            //let mut column_options: Vec<ColumnOptions> = Vec::new();
             loop{
                 match &self.tokens[self.index] {
-                    Token::Word(Word { keyword: KeyWord::PrimaryKey,    .. }) => column_options.push(ColumnOptions::PrimaryKey),
-                    Token::Word(Word { keyword: KeyWord::NotNull,       .. }) => column_options.push(ColumnOptions::NotNull),
-                    Token::Word(Word { keyword: KeyWord::AutoIncrement, .. }) => column_options.push(ColumnOptions::AutoIncrement),
+                    Token::Word(Word { keyword: KeyWord::PrimaryKey,    .. }) => column.primary_key = true,
+                    Token::Word(Word { keyword: KeyWord::NotNull,       .. }) => column.not_null = true,
+                    Token::Word(Word { keyword: KeyWord::AutoIncrement, .. }) => column.auto_increment = true,
                     Token::Word(Word { keyword: KeyWord::Default,       .. }) => {
                         self.next_token();
                         match &self.tokens[self.index] {
@@ -445,33 +446,33 @@ impl Parser /*<'a>*/ {
                         match column.data_type {
                             DataType::Integer => {
                                 match &self.tokens[self.index]{
-                                    Token::Number(s, b) => column_options.push(ColumnOptions::Default(s.to_string())),
+                                    Token::Number(s, b) => column.default = "true".to_string(),
                                     _ => return Err(self.return_error("wrong datatype for default: expected integer"))
                                 }
                             },
                             DataType::Float => {
                                 match &self.tokens[self.index]{
-                                    Token::Number(s, b) => column_options.push(ColumnOptions::Default(s.to_string())),
+                                    Token::Number(s, b) => column.default = s.to_string(),
                                     _ => return Err(self.return_error("wrong datatype for default: expected float"))
                                 }
                             },
                             DataType::Boolean => {
                                 match &self.tokens[self.index]{
-                                    Token::Word(Word { keyword: KeyWord::True, .. }) => column_options.push(ColumnOptions::Default("true".to_string())),
-                                    Token::Word(Word { keyword: KeyWord::False, .. }) => column_options.push(ColumnOptions::Default("false".to_string())),
+                                    Token::Word(Word { keyword: KeyWord::True, .. }) => column.default = "true".to_string(),
+                                    Token::Word(Word { keyword: KeyWord::False, .. }) => column.default = "false".to_string(),
                                     _ => return Err(self.return_error("wrong datatype for default: expected true or false"))
                                 }
                             },
                             DataType::Text => {
                                 match &self.tokens[self.index]{
-                                    Token::SingleQuotedString(value) => column_options.push(ColumnOptions::Default(value.to_string())), 
+                                    Token::SingleQuotedString(value) => column.default = value.to_string(), 
                                     _ => return Err(self.return_error("wrong datatype for default: expected 'string'"))
                                 }
                             },
                             // might remove
                             DataType::Null => {
                                 match &self.tokens[self.index]{
-                                    Token::Number(s, b) => column_options.push(ColumnOptions::Default("".to_string())),
+                                    Token::Number(s, b) => column.default = s.to_string(),
                                     _ => return Err(self.return_error("wrong datatype for default"))
                                 }
                             },
@@ -489,9 +490,6 @@ impl Parser /*<'a>*/ {
                 //self.next_token();
                 self.next_token();
                 if self.tokens[self.index] == Token::Comma {
-                    if column_options.len() > 0 {
-                        column.options = Some(column_options)
-                    }
                     self.next_token();
                     columns.push(column);
                     break;
