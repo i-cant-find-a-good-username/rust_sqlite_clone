@@ -1,17 +1,10 @@
-use std::collections::{HashMap,
-    HashSet};
+use std::{collections::{HashMap, HashSet}};
 
-use crate::parse::parser::Statement;
+use crate::parse::parser::{Statement, ColumnDef, DataType};
 
 use super::database::Database;
 
-enum DataType {
-    Integer,
-    String,
-    Float,
-    Boolean,
-    Invalid,
-}
+#[derive(Debug)]
 
 pub struct Table {
     name: String,
@@ -20,6 +13,8 @@ pub struct Table {
     primary_key: String,
 }
 
+
+#[derive(Debug)]
 pub struct Column {
     name: String,
     data_type: DataType,
@@ -29,34 +24,44 @@ pub struct Column {
 }
 
 impl Table {
-    pub fn new(stmt: Statement, database: &mut Database) -> Self {
-        let data = match stmt{
-            Statement::CreateTable { name, columns } => {
-                (name, columns)
-            },
-            // impossible case
-            _ => {panic!("wrong query type")}
-        };
-
+    pub fn new(params: (String, Vec<ColumnDef>), database: &mut Database) -> Result<Self, String> {
+    
 
         let mut cols: Vec<Column> = Vec::new();
-        for col in data.1 {
+        let mut primary_key = String::from("");
+        for col in params.1 {
+            if col.primary_key {
+                if primary_key == "" {
+                    primary_key = col.name.to_string();
+                }else{
+                    return Err(String::from("only 1 primary key allowed per table"))
+                }
+            }
             
+            cols.push(Column {
+                name: col.name,
+                data_type: col.data_type,
+                is_pk: col.primary_key,
+                is_unique: col.unique,
+                nullable: !col.not_null,
+            })
         }
 
 
 
 
-        Table{
-            name: data.0,
-            columns: todo!(),
-            last_id: 0,
-            primary_key: todo!(),
-        }
+        Ok(
+            Table{
+                name: params.0,
+                columns: cols,
+                last_id: 0,
+                primary_key: "ss".to_string(),
+            }
+        )
 
 
     }
     
     
-    //pub fn show_table_structure() {}
+    pub fn show_table_structure(&self) {}
 }

@@ -410,11 +410,12 @@ impl Parser /*<'a>*/ {
             self.next_token();
             // get column paramaters [notnull unique primaryKey default()]
             loop {
-                //if self.tokens[self.index] == Token::Comma  {
-                //    self.next_token();
-                //    break;
-                //}
                 match &self.tokens[self.index] {
+                    Token::Comma => {
+                        self.next_token();
+                        columns.push(column);
+                        break;
+                    },
                     Token::Word(Word {
                         keyword: KeyWord::PrimaryKey,
                         ..
@@ -497,16 +498,8 @@ impl Parser /*<'a>*/ {
                     }
                     _ => {
                         return Err(self.return_error(&format!(
-                            "invalid column option {} {} {} {} {} {} {} {} {}",
-                            &self.tokens[self.index],
-                            &self.tokens[self.index+0],
-                            &self.tokens[self.index+1],
-                            &self.tokens[self.index+2],
-                            &self.tokens[self.index+3],
-                            &self.tokens[self.index+4],
-                            &self.tokens[self.index+5],
-                            &self.tokens[self.index+6],
-                            &self.tokens[self.index+7]
+                            "invalid column option {}",
+                            &self.tokens[self.index]
                         )))
                     }
                 }
@@ -514,6 +507,10 @@ impl Parser /*<'a>*/ {
                 self.next_token();
                 if self.tokens[self.index] == Token::Comma {
                     self.next_token();
+                    columns.push(column);
+                    break;
+                }
+                if self.tokens[self.index] == Token::RParen {
                     columns.push(column);
                     break;
                 }

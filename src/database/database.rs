@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::table::Table;
+use super::table::Table;
 
 pub struct DatabaseMetaData {
     page_size: u16,
@@ -8,10 +8,10 @@ pub struct DatabaseMetaData {
     changes_counter: u32,
     locked: bool,
 }
-
+#[derive(Debug)]
 pub struct Database {
-    name: String,
-    tables: HashMap<String, Table>,
+    pub name: String,
+    pub tables: HashMap<String, Table>,
 }
 
 impl Database {
@@ -27,18 +27,19 @@ impl Database {
         // read andd create
     }
 
-    pub fn has_table(&self, table_name: String) -> bool {
-        //match self.tables.get(&table_name){
-        //    Some( .. ) => true,
-        //    None => false
-        //}
-        true
+    pub fn has_table(&self, table_name: &String) -> bool {
+        match self.tables.get(table_name){
+            Some( .. ) => {
+                true
+            },
+            None => {
+                false
+            }
+        }
     }
-    pub fn create_table(&self, table_name: String) -> bool {
-        false
-    }
+    
 
-    pub fn get_table() {}
+    //pub fn get_table() {}
 }
 
 //create table test(
