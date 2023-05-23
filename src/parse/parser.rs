@@ -52,7 +52,7 @@ pub enum Statement {
         table_name: String,
         all: bool,
         columns: Option<Vec<String>>,
-        clauses: Option<Vec<Clause>>,
+        clauses: Option<Clause>,
     },
     Insert {
         table_name: String,
@@ -63,11 +63,11 @@ pub enum Statement {
     Update {
         table_name: String,
         allocations: Vec<Allocation>,
-        clauses: Vec<Clause>,
+        clauses: Clause,
     },
     Delete {
         table_name: String,
-        selection: Vec<Clause>,
+        selection: Clause,
     },
     CreateTable {
         name: String,
@@ -179,8 +179,8 @@ impl Parser /*<'a>*/ {
             table_name,
             all,
             columns: if cols.len() != 0 { Some(cols) } else { None },
-            clauses: if clauses.len() != 0 {
-                Some(clauses)
+            clauses: if clauses.is_some() {
+                clauses
             } else {
                 None
             },
@@ -298,12 +298,16 @@ impl Parser /*<'a>*/ {
         let clauses = self.get_clauses()?;
         // makes sure notthing is after last token
         self.finalize_query()?;
+        if clauses.is_some() {
+            return Ok(Statement::Update {
+                table_name,
+                clauses: clauses.unwrap(),
+                allocations,
+            });
+        } else {
+            return Err(self.return_error("conditions are required"))
+        }
 
-        Ok(Statement::Update {
-            table_name: table_name,
-            clauses,
-            allocations,
-        })
     }
 
     pub fn delete_statement(&mut self) -> Result<Statement, ParserError> {
@@ -314,14 +318,14 @@ impl Parser /*<'a>*/ {
         let clauses = self.get_clauses()?;
         self.finalize_query()?;
 
-        if clauses.len() == 0 {
-            return Err(self.return_error("conditions required"));
+        if clauses.is_some() {
+            return Ok(Statement::Delete {
+                table_name,
+                selection: clauses.unwrap(),
+            })
+        } else {
+            return Err(self.return_error("conditions are required"))
         }
-
-        Ok(Statement::Delete {
-            table_name,
-            selection: clauses,
-        })
     }
 
     pub fn drop_statement(&mut self) -> Result<Statement, ParserError> {
@@ -701,12 +705,12 @@ impl Parser /*<'a>*/ {
     //}
 
 
-    pub fn get_clauses(&mut self) -> Result<Vec<Clause>, ParserError> {
-        let mut selection: Vec<Clause> = Vec::new();
+    pub fn get_clauses(&mut self) -> Result<Option<Clause>, ParserError> {
+        let mut selection: Clause = Clause::Value("value doesnt matter will change".to_string());
 
         match self.tokens[self.index] {
            Token::Word(Word{keyword: KeyWord::Where, ..}) => {},
-           _ => return Ok(selection)
+           _ => return Ok(None)
         };
 
         loop {
@@ -724,8 +728,9 @@ impl Parser /*<'a>*/ {
             }?;
             self.next_token();
 
-            match self.tokens[self.index]{
+            selection = match self.tokens[self.index]{
                 Token::Word(Word{ keyword: KeyWord::And, ..}) => {
+                    self.next_token();
                     Clause::Binop {
                         left: Box::new(gg),
                         operation: Token::Word(Word{ keyword: KeyWord::And, value: "and".to_string()}),
@@ -734,6 +739,7 @@ impl Parser /*<'a>*/ {
                     //selection.push(self.get_other_hald_binary_operator(gg)?)
                 },
                 Token::Word(Word{ keyword: KeyWord::Or, ..}) => {
+                    self.next_token();
                     Clause::Binop {
                         left: Box::new(gg),
                         operation: Token::Word(Word{ keyword: KeyWord::Or, value: "or".to_string()}),
@@ -752,7 +758,7 @@ impl Parser /*<'a>*/ {
             //}   
         }
 
-        Ok(selection)
+        Ok(Some(selection))
     }
 
 
@@ -761,7 +767,6 @@ impl Parser /*<'a>*/ {
 
 
     pub fn get_other_hald_binary_operator(&mut self, left: Clause) -> Result<Clause, ParserError> {
-        //self.next_token();
         let operator = match self.tokens[self.index]{
             Token::Word(Word{ keyword: KeyWord::And, ..}) => Token::Word(Word{ keyword: KeyWord::And, value: "and".to_string()}),
             Token::Word(Word{ keyword: KeyWord::Or, ..}) => Token::Word(Word{ keyword: KeyWord::Or, value: "or".to_string()}),

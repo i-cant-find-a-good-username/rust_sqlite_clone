@@ -61,7 +61,7 @@ pub fn parse(command: String, database: &mut Database) -> Result<String, String>
 // check table exist
 // check if selected cols exist
 // check conditions cols correct and correct types
-fn validate_select(params: (String, bool, Option<Vec<String>>, Option<Vec<Clause>>), database: &mut Database) -> Result<String, String> {
+fn validate_select(params: (String, bool, Option<Vec<String>>, Option<Clause>), database: &mut Database) -> Result<String, String> {
     match check_table_exist("table_name".to_string()){
         true => {
 
@@ -158,7 +158,7 @@ fn validate_insert(params: (String, bool, Option<Vec<String>>, Vec<String>), dat
 // check table exist
 // validate selected cols if exist
 // validate values and thier types
-fn validate_update(params: (String, Vec<Allocation>, Vec<Clause>), database: &mut Database) -> Result<String, String> {
+fn validate_update(params: (String, Vec<Allocation>, Clause), database: &mut Database) -> Result<String, String> {
     match check_table_exist("table_name".to_string()){
         true => Ok(String::from("dazdazd")),
         false => return Err(String::from("table doesnt exist"))
@@ -167,7 +167,7 @@ fn validate_update(params: (String, Vec<Allocation>, Vec<Clause>), database: &mu
 // check table exist
 // validate selected cols if exist
 // validate values and thier types
-fn validate_delete(params: (String, Vec<Clause>), database: &mut Database) -> Result<String, String> {
+fn validate_delete(params: (String, Clause), database: &mut Database) -> Result<String, String> {
     match check_table_exist("table_name".to_string()){
         true => Ok(String::from("dazdazd")),
         false => return Err(String::from("table doesnt exist"))
