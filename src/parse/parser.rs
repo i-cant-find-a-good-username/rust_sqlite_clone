@@ -663,7 +663,6 @@ impl Parser /*<'a>*/ {
            _ => return Ok(None)
         };
 
-        println!("=========000000>>>>>>>>>>>>>>>>>>>>>><>>>>{:?}", self.tokens[self.index]);
 
 
 
@@ -674,7 +673,6 @@ impl Parser /*<'a>*/ {
             _ => return Err(self.return_error("invalid syntax after where")),
         }?;
         self.next_token();
-        println!("ffffffffffffffffffffffffffffffffffffffffff{:?}", selection);
 
 
 
@@ -696,7 +694,6 @@ impl Parser /*<'a>*/ {
                         operation: Token::Word(Word{ keyword: KeyWord::And, value: "and".to_string()}),
                         right: Box::new(next_clause)
                     }
-                    //selection.push(self.get_other_hald_binary_operator(selection)?)
                 },
                 Token::Word(Word{ keyword: KeyWord::Or, ..}) => {
                     self.next_token();
@@ -710,17 +707,10 @@ impl Parser /*<'a>*/ {
                         operation: Token::Word(Word{ keyword: KeyWord::Or, value: "or".to_string()}),
                         right: Box::new(next_clause)
                     }
-                    //selection.push(self.get_other_hald_binary_operator(gg)?)
                 },
                 _ => break,
             };
-            println!("=========111111>>>>>>>>>>>>>>>>>>>>>><>>>>{:?}", self.tokens[self.index]);
             self.next_token();
-            println!("=========111111>>>>>>>>>>>>>>>>>>>>>><>>>>{:?}", self.tokens[self.index]);
-            
-            //if self.tokens[self.index] == Token::SemiColon {
-            //    break;
-            //}   
         }
 
         Ok(Some(selection))
@@ -783,59 +773,66 @@ impl Parser /*<'a>*/ {
 
 
     pub fn get_nested_binary_operators(&mut self) -> Result<Clause, ParserError> {
-        println!("finnnnnnnnnnnnnnnnnnnnnnnnnal {:?}", self.tokens[self.index]);
         match &self.tokens[self.index]{
             Token::LParen => {},
             _ => return Err(self.return_error("this error is probably impossible")),
         }
         self.next_token();
-        println!("finnnnnnnnnnnnnnnnnnnnnnnnnal {:?}", self.tokens[self.index]);
-        //let clause = self.get_binary_operator()?;
-        let mut selection: Clause = self.get_binary_operator()?;
+
+        let mut selection = match self.tokens[self.index] {
+            Token::Word(Word{..}) => self.get_binary_operator(),
+            Token::LParen => self.get_nested_binary_operators(),
+            _ => return Err(self.return_error("invalid syntax after where")),
+        }?;
         self.next_token();
-        selection = match self.tokens[self.index]{
-            Token::Word(Word{ keyword: KeyWord::And, ..}) => {
-                self.next_token();
-                let next_clause = match self.tokens[self.index] {
-                    Token::Word(Word{..}) => self.get_binary_operator(),
-                    Token::LParen => self.get_nested_binary_operators(),
-                    _ => return Err(self.return_error("invalid syntax after where")),
-                }?;
-                self.next_token();
-                Clause::Binop {
-                    left: Box::new(selection),
-                    operation: Token::Word(Word{ keyword: KeyWord::And, value: "and".to_string()}),
-                    right: Box::new(next_clause)
-                }
-                //selection.push(self.get_other_hald_binary_operator(gg)?)
-            },
-            Token::Word(Word{ keyword: KeyWord::Or, ..}) => {
-                self.next_token();
-                let next_clause = match self.tokens[self.index] {
-                    Token::Word(Word{..}) => self.get_binary_operator(),
-                    Token::LParen => self.get_nested_binary_operators(),
-                    _ => return Err(self.return_error("invalid syntax after where")),
-                }?;
-                self.next_token();
-                Clause::Binop {
-                    left: Box::new(selection),
-                    operation: Token::Word(Word{ keyword: KeyWord::Or, value: "or".to_string()}),
-                    right: Box::new(next_clause)
-                }
-                //selection.push(self.get_other_hald_binary_operator(gg)?)
-            },
-            _ => {
-                selection
-            },
-        };
-        /* */
+
+
+
+        loop {
+            if self.tokens[self.index] == Token::SemiColon {
+                break
+            }
+
+            selection = match self.tokens[self.index]{
+                Token::Word(Word{ keyword: KeyWord::And, ..}) => {
+                    self.next_token();
+                    let next_clause = match self.tokens[self.index] {
+                        Token::Word(Word{..}) => self.get_binary_operator(),
+                        Token::LParen => self.get_nested_binary_operators(),
+                        _ => return Err(self.return_error("invalid syntax after where")),
+                    }?;
+                    self.next_token();
+                    Clause::Binop {
+                        left: Box::new(selection),
+                        operation: Token::Word(Word{ keyword: KeyWord::And, value: "and".to_string()}),
+                        right: Box::new(next_clause)
+                    }
+                    //selection.push(self.get_other_hald_binary_operator(selection)?)
+                },
+                Token::Word(Word{ keyword: KeyWord::Or, ..}) => {
+                    self.next_token();
+                    let next_clause = match self.tokens[self.index] {
+                        Token::Word(Word{..}) => self.get_binary_operator(),
+                        Token::LParen => self.get_nested_binary_operators(),
+                        _ => return Err(self.return_error("invalid syntax after where")),
+                    }?;
+                    self.next_token();
+                    Clause::Binop {
+                        left: Box::new(selection),
+                        operation: Token::Word(Word{ keyword: KeyWord::Or, value: "or".to_string()}),
+                        right: Box::new(next_clause)
+                    }
+                    //selection.push(self.get_other_hald_binary_operator(gg)?)
+                },
+                _ => break,
+            };
+        }
         
         println!("finaaaaaaaaaaal {:?}", self.tokens[self.index]);
         match &self.tokens[self.index]{
             Token::RParen => {},
             _ => return Err(self.return_error("right parenteses not found")),
         }
-        //self.next_token();
         Ok(Clause::Nested(Box::new(selection)))
     }
 
