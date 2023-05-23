@@ -1,6 +1,9 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap,
+    HashSet};
 
 use crate::parse::parser::Statement;
+
+use super::database::Database;
 
 enum DataType {
     Integer,
@@ -10,14 +13,14 @@ enum DataType {
     Invalid,
 }
 
-struct Table {
+pub struct Table {
     name: String,
     columns: Vec<Column>,
     last_id: u64,
     primary_key: String,
 }
 
-struct Column {
+pub struct Column {
     name: String,
     data_type: DataType,
     is_pk: bool,
@@ -26,19 +29,34 @@ struct Column {
 }
 
 impl Table {
-    pub fn new(stmt: Statement) -> self {
+    pub fn new(stmt: Statement, database: &mut Database) -> Self {
         let data = match stmt{
-            Statement::Insert { table_name, all, columns, values } => {
-                (table_name, all, columns, values)
+            Statement::CreateTable { name, columns } => {
+                (name, columns)
             },
+            // impossible case
             _ => {panic!("wrong query type")}
         };
 
-        if data.1 == true && data.2 == None {
+
+        let mut cols: Vec<Column> = Vec::new();
+        for col in data.1 {
             
         }
 
 
+
+
+        Table{
+            name: data.0,
+            columns: todo!(),
+            last_id: 0,
+            primary_key: todo!(),
+        }
+
+
     }
-    pub fn show_table_structure() {}
+    
+    
+    //pub fn show_table_structure() {}
 }

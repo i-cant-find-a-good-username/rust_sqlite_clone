@@ -1,3 +1,4 @@
+use crate::database::database::Database;
 use crate::parse;
 use crate::parse::parser::{Parser, ParserError, Statement};
 #[derive(Debug)]
@@ -28,8 +29,8 @@ impl SQLCommand {
     }
 }
 
-pub fn run_sql_command(command: String) -> Result<String, String> {
-    match parse::parse(command.trim().to_string()) {
+pub fn run_sql_command(command: String, database: &mut Database) -> Result<String, String> {
+    match parse::parse(command.trim().to_string(), database) {
         Ok(msg) => return Ok(format!("{:?}", msg)),
         Err(msg) => return Err(format!("{:?}", msg)),
     };

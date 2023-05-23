@@ -2,49 +2,50 @@ use std::collections::HashMap;
 
 use crate::table::Table;
 
-struct DatabaseMetaData {
+pub struct DatabaseMetaData {
     page_size: u16,
     pages_number: u32,
     changes_counter: u32,
     locked: bool,
 }
 
-struct Database {
+pub struct Database {
     name: String,
     tables: HashMap<String, Table>,
 }
 
 impl Database {
-    fn new(name: String) -> Database {
+    pub fn new(name: String) -> Self {
+        //  here we read it from the file
         Database {
             name,
             tables: HashMap::new(),
         }
     }
 
-    fn read() {
+    pub fn read() {
         // read andd create
     }
 
-    fn has_table(&self, table_name: String) -> bool {
+    pub fn has_table(&self, table_name: String) -> bool {
         //match self.tables.get(&table_name){
         //    Some( .. ) => true,
         //    None => false
         //}
         true
     }
-    fn create_table(&self, table_name: String) -> bool {
+    pub fn create_table(&self, table_name: String) -> bool {
         false
     }
 
-    fn get_table() {}
+    pub fn get_table() {}
 }
 
 //create table test(
-//    id integer primary key,
-//    username varchar(255),
-//    email varchar(255),
-//    password varchar(255),
+//    id integer primary_key,
+//    username text,
+//    email text,
+//    password text,
 //    age integer,
 //    phone_number integer
 //)

@@ -1,8 +1,5 @@
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
-use std::fmt::format;
-use std::io::prelude::*;
-use std::{collections::BTreeMap, fs::File};
 use std::{env, process};
 
 mod commands;
@@ -12,7 +9,6 @@ mod rustyline_config;
 mod table;
 mod user;
 
-use parse::tokenizer;
 
 use commands::{
     meta_command::run_meta_command, process_command, sql_command::run_sql_command, CommandType,
@@ -20,22 +16,19 @@ use commands::{
 use rustyline_config::{get_config, REPLHelper};
 
 use crate::commands::sql_command::SQLCommand;
-use crate::parse::parser;
 
-//process_meta_command
-//process_sql_command
 
 fn main() -> rustyline::Result<()> {
     let args: Vec<String> = env::args().collect();
     if args.len() == 1 {
         println!("expected database file name");
         process::exit(1)
-    } else if (args.len() > 2) {
+    } else if args.len() > 2 {
         println!("unexpected arguments");
         process::exit(1)
     }
 
-    //read file
+
 
     //let mut rl = DefaultEditor::new()?;
     let config = get_config();
@@ -47,18 +40,19 @@ fn main() -> rustyline::Result<()> {
         println!("No previous history.");
     }
 
-    let p = format!("RSQL> ");
-    repl.helper_mut().expect("No helper found").colored_prompt = format!("\x1b[1;32m{}\x1b[0m", p);
+    let prompt = format!("RSQL> ");
+    repl.helper_mut().expect("No helper found").colored_prompt = format!("\x1b[1;32m{}\x1b[0m", prompt);
 
+    let mut database = database::database::Database::new(args[1].to_string());
     loop {
-        let readline = repl.readline(&p);
+        let readline = repl.readline(&prompt);
         match readline {
             Ok(command) => {
                 repl.add_history_entry(command.as_str());
                 match process_command(&command) {
                     CommandType::TypeSQL(cmd) => match cmd {
                         SQLCommand::Invalid(err) => println!("an error occured: {}", err),
-                        _ => match run_sql_command(command) {
+                        _ => match run_sql_command(command, &mut database) {
                             Ok(result) => println!("{}", result),
                             Err(err) => println!("an error occured: {}", err),
                         },

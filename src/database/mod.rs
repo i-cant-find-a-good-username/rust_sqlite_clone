@@ -1,2 +1,2 @@
-mod database;
-mod table;
+pub mod database;
+pub mod table;

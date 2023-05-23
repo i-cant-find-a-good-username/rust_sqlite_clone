@@ -7,6 +7,7 @@ pub struct ColumnDef {
     pub primary_key: bool,
     pub auto_increment: bool,
     pub not_null: bool,
+    pub unique: bool,
     pub default: String, //pub options: Option<Vec<ColumnOptions>>,
 }
 
@@ -37,26 +38,26 @@ pub struct Allocation {
 
 #[derive(Debug)]
 pub enum DataType {
-    Text,    //lenght
-    Integer, //lenght
-    Float,   //lenght
-    Boolean, //lenght
+    Text,
+    Integer,
+    Float,
+    Boolean,
     Null,
 }
 
-#[derive(Debug)]
-pub enum ObjectType {
-    Table,
-}
+//#[derive(Debug)]
+//pub enum ObjectType {
+//    Table,
+//}
 
-#[derive(Debug)]
-pub enum ColumnOptions {
-    AutoIncrement,
-    PrimaryKey,
-    NotNull,
-    Default(String),
-    Unique,
-}
+//#[derive(Debug)]
+//pub enum ColumnOptions {
+//    AutoIncrement,
+//    PrimaryKey,
+//    NotNull,
+//    Default(String),
+//    Unique,
+//}
 
 #[derive(Debug)]
 pub enum Statement {
@@ -359,14 +360,6 @@ impl Parser /*<'a>*/ {
     }
 
     pub fn create_statement(&mut self) -> Result<Statement, ParserError> {
-        /*
-            create table users (
-                id integer primary_key,
-                username text not_null,
-                email text not_null,
-            );
-        */
-
         self.next_token();
         self.confirm_keyword(KeyWord::Table)?;
         // table name
@@ -382,6 +375,7 @@ impl Parser /*<'a>*/ {
                 primary_key: false,
                 auto_increment: false,
                 not_null: false,
+                unique: false,
                 default: String::new(),
             };
             // get col name
@@ -414,8 +408,12 @@ impl Parser /*<'a>*/ {
                 _ => return Err(self.return_error("col type req [integer, float, boolean, text]")),
             }
             self.next_token();
-            //let mut column_options: Vec<ColumnOptions> = Vec::new();
+            // get column paramaters [notnull unique primaryKey default()]
             loop {
+                //if self.tokens[self.index] == Token::Comma  {
+                //    self.next_token();
+                //    break;
+                //}
                 match &self.tokens[self.index] {
                     Token::Word(Word {
                         keyword: KeyWord::PrimaryKey,
@@ -429,6 +427,10 @@ impl Parser /*<'a>*/ {
                         keyword: KeyWord::AutoIncrement,
                         ..
                     }) => column.auto_increment = true,
+                    Token::Word(Word {
+                        keyword: KeyWord::Unique,
+                        ..
+                    }) => column.unique = true,
                     Token::Word(Word {
                         keyword: KeyWord::Default,
                         ..
@@ -495,8 +497,16 @@ impl Parser /*<'a>*/ {
                     }
                     _ => {
                         return Err(self.return_error(&format!(
-                            "invalid column option {}",
-                            &self.tokens[self.index]
+                            "invalid column option {} {} {} {} {} {} {} {} {}",
+                            &self.tokens[self.index],
+                            &self.tokens[self.index+0],
+                            &self.tokens[self.index+1],
+                            &self.tokens[self.index+2],
+                            &self.tokens[self.index+3],
+                            &self.tokens[self.index+4],
+                            &self.tokens[self.index+5],
+                            &self.tokens[self.index+6],
+                            &self.tokens[self.index+7]
                         )))
                     }
                 }

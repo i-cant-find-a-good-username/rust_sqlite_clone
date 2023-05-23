@@ -3,9 +3,14 @@ pub mod parser;
 pub mod tokenizer;
 //pub crate::database::database::has_table;
 
-use parser::{DataType, ParserError, Statement};
+use parser::{ParserError, Statement};
 
-pub fn parse(command: String) -> Result<Vec<Statement>, ParserError> {
+use crate::database::{
+    database::Database,
+    table::Table
+};
+
+pub fn parse(command: String, database: &mut Database) -> Result<Vec<Statement>, ParserError> {
     // this bclock is returned
     //parser::Parser::new(command);
     let result = match parser::Parser::parse(command) {
@@ -38,6 +43,40 @@ fn validate_select(table_name: String) -> Result<String, String> {
         false => return Err(String::from("table doesnt exist"))
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // check table exist
 // validate selected cols if exist
 // validate values and thier types
@@ -49,6 +88,38 @@ fn validate_insert(table_name: String) -> Result<String, String> {
         false => return Err(String::from("table doesnt exist"))
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // check table exist
 // validate selected cols if exist
 // validate values and thier types
@@ -67,13 +138,100 @@ fn validate_delete(table_name: String) -> Result<String, String> {
         false => return Err(String::from("table doesnt exist"))
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // check table exist
-fn validate_create(table_name: String) -> Result<String, String> {
+fn validate_create(stmt: Statement, database: &mut Database) -> Result<String, String> {
     match check_table_exist("table_name".to_string()){
         true => return Err(String::from("table already exists")),
-        false => Ok(String::from("dazdazd"))
+        false => {
+            Table::new(stmt, database);
+            Ok(String::from("dazdazd"))
+        }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 fn validate_drop(table_name: String) -> Result<String, String>{
     match check_table_exist("table_name".to_string()){
         true => {

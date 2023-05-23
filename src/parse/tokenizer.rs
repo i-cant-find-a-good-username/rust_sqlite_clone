@@ -35,6 +35,7 @@ pub enum KeyWord {
     NotNull,
     AutoIncrement,
     PrimaryKey,
+    Unique,
     NotAKeyword,
 }
 
@@ -478,6 +479,10 @@ impl<'a> Tokenizer<'a> {
             "primary_key" => Word {
                 value: s,
                 keyword: KeyWord::PrimaryKey,
+            },
+            "unique" => Word {
+                value: s,
+                keyword: KeyWord::Unique,
             },
             _ => Word {
                 value: s,
