@@ -52,7 +52,7 @@ pub fn parse(command: String, database: &mut Database) -> Result<String, String>
                 }
             }
         }
-        Err( .. ) => return Err("some errors".to_string()),
+        Err( err ) => return Err(format!("{:?}", err)),
     };
 
     Ok("result".to_string())
@@ -63,7 +63,18 @@ pub fn parse(command: String, database: &mut Database) -> Result<String, String>
 // check conditions cols correct and correct types
 fn validate_select(params: (String, bool, Option<Vec<String>>, Option<Vec<Clause>>), database: &mut Database) -> Result<String, String> {
     match check_table_exist("table_name".to_string()){
-        true => Ok(String::from("dazdazd")),
+        true => {
+
+            // if all
+            if params.1 {
+                
+            }else{
+
+            }
+
+
+            Ok(String::from("dazdazd"))
+        },
         false => return Err(String::from("table doesnt exist"))
     }
 }
@@ -203,13 +214,7 @@ fn validate_create(params: (String, Vec<ColumnDef>), database: &mut Database) ->
         true => Err(String::from("table already exists")),
         false => {
             let table_name = params.0.to_string();
-
-            let table = match Table::new(params, database){
-                Ok(result) => result,
-                Err(err) => return Err(err)
-            };
-
-
+            let table = Table::new(params, database)?;
             table.show_table_structure();
             database.tables.insert(table_name, table);
             println!("{:?}", database);

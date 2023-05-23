@@ -64,4 +64,7 @@ impl Table {
     
     
     pub fn show_table_structure(&self) {}
+    
+    pub fn get_table(&self) {}
+    pub fn get_mut_table(&self) {}
 }
