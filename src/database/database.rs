@@ -28,16 +28,11 @@ impl Database {
     }
 
     pub fn has_table(&self, table_name: &String) -> bool {
-        match self.tables.get(table_name){
-            Some( .. ) => {
-                true
-            },
-            None => {
-                false
-            }
+        match self.tables.get(table_name) {
+            Some(..) => true,
+            None => false,
         }
     }
-    
 
     //pub fn get_table() {}
 }

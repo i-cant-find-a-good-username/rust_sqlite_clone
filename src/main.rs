@@ -9,14 +9,12 @@ mod rustyline_config;
 mod table;
 mod user;
 
-
 use commands::{
     meta_command::run_meta_command, process_command, sql_command::run_sql_command, CommandType,
 };
 use rustyline_config::{get_config, REPLHelper};
 
 use crate::commands::sql_command::SQLCommand;
-
 
 fn main() -> rustyline::Result<()> {
     let args: Vec<String> = env::args().collect();
@@ -27,8 +25,6 @@ fn main() -> rustyline::Result<()> {
         println!("unexpected arguments");
         process::exit(1)
     }
-
-
 
     //let mut rl = DefaultEditor::new()?;
     let config = get_config();
@@ -41,7 +37,8 @@ fn main() -> rustyline::Result<()> {
     }
 
     let prompt = format!("RSQL> ");
-    repl.helper_mut().expect("No helper found").colored_prompt = format!("\x1b[1;32m{}\x1b[0m", prompt);
+    repl.helper_mut().expect("No helper found").colored_prompt =
+        format!("\x1b[1;32m{}\x1b[0m", prompt);
 
     let mut database = database::database::Database::new(args[1].to_string());
     loop {
@@ -54,7 +51,7 @@ fn main() -> rustyline::Result<()> {
                         SQLCommand::Invalid(err) => println!("an error occured: {}", err),
                         _ => match run_sql_command(command, &mut database) {
                             Ok(result) => println!("{}", result),
-                            Err(err) => println!("an error occured: {}", err),
+                            Err(err) => println!("an error occured: \n{}", err),
                         },
                     },
                     CommandType::TypeMeta(cmd) => match run_meta_command(cmd) {

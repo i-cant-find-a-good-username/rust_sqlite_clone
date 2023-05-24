@@ -1,5 +1,5 @@
 use std::{fmt, iter::Peekable, str::Chars};
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum KeyWord {
     Select,
     Insert,
@@ -39,7 +39,7 @@ pub enum KeyWord {
     NotAKeyword,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     EOF,
     Word(Word),
@@ -71,7 +71,7 @@ pub enum Token {
     RBrace,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 
 pub struct Word {
     pub value: String,
@@ -85,7 +85,7 @@ pub struct TokenizerError {
     pub col: u64,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Whitespace {
     Space,
     Newline,
@@ -105,7 +105,7 @@ impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Token::EOF => f.write_str("EOF"),
-            Token::Word(ref w) => write!(f, "{:?}", w),
+            Token::Word(ref w) => write!(f, "{:?}", w.value),
             Token::Number(ref n, l) => write!(f, "{}{long}", n, long = if *l { "L" } else { "" }),
             Token::Char(ref c) => write!(f, "{}", c),
             Token::SingleQuotedString(ref s) => write!(f, "'{}'", s),
@@ -170,13 +170,16 @@ impl<'a> Tokenizer<'a> {
             match &token {
                 Token::Whitespace(Whitespace::Newline) => {
                     self.line += 1;
-                    self.col = 1;
+                    self.col += 1;
                 }
-
                 Token::Whitespace(Whitespace::Space) => self.col += 1,
                 Token::Whitespace(Whitespace::Tab) => self.col += 4,
                 Token::Word(w) => self.col += w.value.len() as u64,
                 Token::SingleQuotedString(s) => self.col += s.len() as u64,
+                Token::DoubleEq => self.col += 2,
+                Token::Neq => self.col += 2,
+                Token::LtEq => self.col += 2,
+                Token::GtEq => self.col += 2,
                 _ => self.col += 1,
             }
             tokens.push(token);
@@ -238,8 +241,8 @@ impl<'a> Tokenizer<'a> {
                                     false => {
                                         return Err(TokenizerError {
                                             message: "seperate - from words".to_string(),
-                                            col: 5,
-                                            line: 10,
+                                            col: self.col,
+                                            line: self.line,
                                         })
                                     } //token error here
                                 }

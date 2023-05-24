@@ -1,6 +1,6 @@
-use std::{collections::{HashMap, HashSet}};
+use std::collections::{HashMap, HashSet};
 
-use crate::parse::parser::{Statement, ColumnDef, DataType};
+use crate::parse::parser::{ColumnDef, DataType, Statement};
 
 use super::database::Database;
 
@@ -13,7 +13,6 @@ pub struct Table {
     primary_key: String,
 }
 
-
 #[derive(Debug)]
 pub struct Column {
     name: String,
@@ -25,19 +24,17 @@ pub struct Column {
 
 impl Table {
     pub fn new(params: (String, Vec<ColumnDef>), database: &mut Database) -> Result<Self, String> {
-    
-
         let mut cols: Vec<Column> = Vec::new();
         let mut primary_key = String::from("");
         for col in params.1 {
             if col.primary_key {
                 if primary_key == "" {
                     primary_key = col.name.to_string();
-                }else{
-                    return Err(String::from("only 1 primary key allowed per table"))
+                } else {
+                    return Err(String::from("only 1 primary key allowed per table"));
                 }
             }
-            
+
             cols.push(Column {
                 name: col.name,
                 data_type: col.data_type,
@@ -47,24 +44,16 @@ impl Table {
             })
         }
 
-
-
-
-        Ok(
-            Table{
-                name: params.0,
-                columns: cols,
-                last_id: 0,
-                primary_key: "ss".to_string(),
-            }
-        )
-
-
+        Ok(Table {
+            name: params.0,
+            columns: cols,
+            last_id: 0,
+            primary_key: "ss".to_string(),
+        })
     }
-    
-    
+
     pub fn show_table_structure(&self) {}
-    
+
     pub fn get_table(&self) {}
     pub fn get_mut_table(&self) {}
 }
