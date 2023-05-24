@@ -830,7 +830,7 @@ impl Parser /*<'a>*/ {
         ParserError {
             message: message.to_string(),
             token: token_errored.clone(),
-            index: format!("line: {},\ncol: {}", line, col),
+            index: format!("\n\tline: {},\n\tcol: {}", line, col),
         }
     }
 }

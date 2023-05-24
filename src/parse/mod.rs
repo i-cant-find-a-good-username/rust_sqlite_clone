@@ -90,7 +90,9 @@ fn validate_insert(
     database: &mut Database,
 ) -> Result<String, String> {
     match check_table_exist("table_name".to_string()) {
-        true => Ok(String::from("dazdazd")),
+        true => {
+            Ok(String::from("dazdazd"))
+        },
         false => return Err(String::from("table doesnt exist")),
     }
 }

@@ -1,0 +1,28 @@
+page size 4096 byte
+
+
+
+need code for page start and page end
+
+
+
+
+1 page database info
+    page size               4bytes
+    file change counter     4bytes
+    lock                    1byte
+
+
+
+1 or more pages for tables
+table table_name(col_name type)
+
+
+1 or more pages for each table rows
+id col_1_type col_2_type .... col_n_type col_1_size col_2_size .... col_n_size col_1_value col_2_value .... col_n_value
+
+types
+    text
+    integer
+    float
+    bool

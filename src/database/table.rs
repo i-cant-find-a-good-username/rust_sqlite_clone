@@ -44,6 +44,8 @@ impl Table {
             })
         }
 
+        // write table to file
+
         Ok(Table {
             name: params.0,
             columns: cols,

@@ -7,6 +7,17 @@ edition = "2021"
 
 
 
+[[bin]]
+name = "main"
+path = "src/main.rs"
+
+
+
+[[bin]]
+name = "btree"
+path = "src/btree/main.rs"
+
+
 [dependencies]
 rustyline = "11.0.0"
 prettytable-rs = "0.10.0"
