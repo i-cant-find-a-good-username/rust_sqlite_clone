@@ -2,6 +2,7 @@ use rustyline::error::ReadlineError;
 use rustyline::Editor;
 use std::{env, process};
 
+mod btree;
 mod commands;
 mod database;
 mod parse;

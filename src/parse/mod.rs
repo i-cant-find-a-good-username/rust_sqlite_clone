@@ -1,9 +1,7 @@
-pub mod operations;
 pub mod parser;
 pub mod tokenizer;
-//pub crate::database::database::has_table;
 
-use parser::{Allocation, Clause, ParserError, Statement};
+use parser::{Allocation, Clause, Statement};
 
 use crate::database::{database::Database, table::Table};
 
@@ -90,9 +88,7 @@ fn validate_insert(
     database: &mut Database,
 ) -> Result<String, String> {
     match check_table_exist("table_name".to_string()) {
-        true => {
-            Ok(String::from("dazdazd"))
-        },
+        true => Ok(String::from("dazdazd")),
         false => return Err(String::from("table doesnt exist")),
     }
 }
