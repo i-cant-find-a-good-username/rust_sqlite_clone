@@ -1,6 +1,9 @@
 use std::collections::HashMap;
-
+use crate::constants::{
+    PAGE_SIZE
+};
 use super::table::Table;
+use super::pager;
 
 pub struct DatabaseMetaData {
     page_size: u16,
@@ -11,14 +14,19 @@ pub struct DatabaseMetaData {
 #[derive(Debug)]
 pub struct Database {
     pub name: String,
+    pub pager: pager::Pager,
     pub tables: HashMap<String, Table>,
 }
+
+
 
 impl Database {
     pub fn new(name: String) -> Self {
         //  here we read it from the file
+        //  temporary values
         Database {
             name,
+            pager: pager::new("name".to_string()),
             tables: HashMap::new(),
         }
     }

@@ -13,7 +13,7 @@ pub struct Table {
     name: String,
     columns: Vec<Column>,
     last_id: u64,
-    primary_key: String,
+    primary_key: Option<String>,
 }
 
 #[derive(Debug)]
@@ -64,7 +64,7 @@ impl Table {
             name: params.0,
             columns: cols,
             last_id: 0,
-            primary_key: "ss".to_string(),
+            primary_key: Some("ss".to_string()),
         })
     }
 

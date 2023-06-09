@@ -1,6 +1,6 @@
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
-use std::{env, process};
+use std::{env, process, path::Path};
 
 mod btree;
 mod commands;
@@ -9,6 +9,7 @@ mod parse;
 mod rustyline_config;
 mod table;
 mod user;
+mod constants;
 
 use commands::{
     meta_command::run_meta_command, process_command, sql_command::run_sql_command, CommandType,
@@ -27,6 +28,15 @@ fn main() -> rustyline::Result<()> {
         process::exit(1)
     }
 
+    let mut database = if Path::new("/etc/hosts").exists() {
+        database::database::Database::new(args[1].to_string())
+    }else{
+        println!("invalid database file");
+        process::exit(1)
+    };
+
+    
+
     //let mut rl = DefaultEditor::new()?;
     let config = get_config();
     let helper = REPLHelper::default();
@@ -41,7 +51,8 @@ fn main() -> rustyline::Result<()> {
     repl.helper_mut().expect("No helper found").colored_prompt =
         format!("\x1b[1;32m{}\x1b[0m", prompt);
 
-    let mut database = database::database::Database::new(args[1].to_string());
+
+
     loop {
         let readline = repl.readline(&prompt);
         match readline {
