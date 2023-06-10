@@ -1,13 +1,15 @@
 pub mod parser;
 pub mod tokenizer;
 
+use std::fs::File;
+
 use parser::{Allocation, Clause, Statement};
 
 use crate::database::{database::Database, table::Table};
 
 use self::parser::ColumnDef;
 
-pub fn parse(command: String, database: &mut Database) -> Result<String, String> {
+pub fn parse(command: String, database: &mut Database, file: &File) -> Result<String, String> {
     // this bclock is returned
     //parser::Parser::new(command);
     match parser::Parser::parse(command) {
@@ -37,7 +39,7 @@ pub fn parse(command: String, database: &mut Database) -> Result<String, String>
                         selection,
                     } => validate_delete((table_name, selection), database),
                     Statement::CreateTable { name, columns } => {
-                        validate_create((name, columns), database)
+                        validate_create((name, columns), database, file)
                     }
                     Statement::Drop { object_type, names } => {
                         validate_drop((object_type, names), database)
@@ -59,6 +61,61 @@ pub fn parse(command: String, database: &mut Database) -> Result<String, String>
 
     Ok("result".to_string())
 }
+
+
+
+
+
+
+
+
+
+
+
+
+fn validate_create(
+    params: (String, Vec<ColumnDef>),
+    database: &mut Database,
+    file: &File
+) -> Result<String, String> {
+    match database.has_table(&params.0) {
+        true => Err(String::from("table already exists")),
+        false => {
+            let table_name = params.0.to_string();
+            let table = Table::new(params, database, file)?;
+            table.show_table_structure();
+            database.tables.insert(table_name, table);
+            //println!("{:?}", database);
+            Ok(String::from("table created"))
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // check table exist
 // check if selected cols exist
@@ -115,23 +172,6 @@ fn validate_delete(params: (String, Clause), database: &mut Database) -> Result<
     }
 }
 
-// check table exist
-fn validate_create(
-    params: (String, Vec<ColumnDef>),
-    database: &mut Database,
-) -> Result<String, String> {
-    match database.has_table(&params.0) {
-        true => Err(String::from("table already exists")),
-        false => {
-            let table_name = params.0.to_string();
-            let table = Table::new(params, database)?;
-            table.show_table_structure();
-            database.tables.insert(table_name, table);
-            println!("{:?}", database);
-            Ok(String::from("table created"))
-        }
-    }
-}
 
 fn validate_drop(params: (String, Vec<String>), database: &mut Database) -> Result<String, String> {
     match check_table_exist("table_name".to_string()) {

@@ -1,5 +1,5 @@
 use std::collections::{HashMap, HashSet};
-use std::io::Write;
+use std::io::{Write, SeekFrom, Seek};
 
 use crate::parse::parser::{ColumnDef, DataType, Statement};
 
@@ -25,11 +25,14 @@ pub struct Column {
     nullable: bool,
 }
 
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 
 impl Table {
-    pub fn new(params: (String, Vec<ColumnDef>), database: &mut Database) -> Result<Self, String> {
-        let table_string = "table useres (id integer primary_key, username text not_null, password text not_null);";
+    pub fn new(params: (String, Vec<ColumnDef>), database: &mut Database, mut file: &File) -> Result<Self, String> {
+        let mut table_string = String::from("table");
+        table_string.push_str(&" ");
+        table_string.push_str(&params.0);
+        table_string.push_str(&"(");
         let mut cols: Vec<Column> = Vec::new();
         let mut primary_key = String::from("");
         for col in params.1 {
@@ -40,6 +43,31 @@ impl Table {
                     return Err(String::from("only 1 primary key allowed per table"));
                 }
             }
+
+            table_string.push_str(&col.name);
+            table_string.push_str(&" ");
+            match col.data_type{
+                DataType::Text => table_string.push_str(&"text"),
+                DataType::Integer => table_string.push_str(&"integer"),
+                DataType::Float => table_string.push_str(&"float"),
+                DataType::Boolean => table_string.push_str(&"boolean"),
+                DataType::Null => table_string.push_str(&"null"),
+            }
+            table_string.push_str(&" ");
+            if col.primary_key{
+                table_string.push_str(&"primary_key");
+                table_string.push_str(&" ");
+            }
+            if col.unique{
+                table_string.push_str(&"unique");
+                table_string.push_str(&" ");
+            }
+            if col.not_null{
+                table_string.push_str(&"not_null");
+                table_string.push_str(&" ");
+            }
+            table_string = table_string[0..table_string.len() - 1].to_string();
+            table_string.push_str(&", ");
             cols.push(Column {
                 name: col.name,
                 data_type: col.data_type,
@@ -48,23 +76,23 @@ impl Table {
                 nullable: !col.not_null,
             })
         }
+        println!("{:?}", table_string);
+        table_string = table_string[0..table_string.len() - 2].to_string();
+        table_string.push_str(&");");
+        println!("{:?}", table_string);
 
-        let mut file = File::create("data.db").unwrap();
-        // file.write_all(&[0x0; 4096]).unwrap();
 
-        // Write a slice of bytes to the file
+
+   
+
+        file.seek(SeekFrom::Start(4096)).unwrap();
         file.write_all(table_string.as_bytes()).unwrap();
-
-        println!("{},  ..{:?}", params.0, cols);
-
-        btree::table::add_table();
-        // write table to file
 
         Ok(Table {
             name: params.0,
             columns: cols,
             last_id: 0,
-            primary_key: Some("ss".to_string()),
+            primary_key: Some(primary_key),
         })
     }
 

@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::path::Path;
 use crate::constants::{
     PAGE_SIZE
 };
@@ -25,8 +26,8 @@ impl Database {
         //  here we read it from the file
         //  temporary values
         Database {
-            name,
-            pager: pager::new("name".to_string()),
+            name: name.clone(),
+            pager: pager::new(name),
             tables: HashMap::new(),
         }
     }

@@ -1,1 +1,1 @@
-table useres (id integer primary_key, username text not_null, password text not_null)
+table users(valinteger, nametextnot_null , );
