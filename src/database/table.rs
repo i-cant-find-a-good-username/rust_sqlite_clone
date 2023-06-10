@@ -10,25 +10,25 @@ use super::database::Database;
 #[derive(Debug)]
 
 pub struct Table {
-    name: String,
-    columns: Vec<Column>,
-    last_id: u64,
-    primary_key: Option<String>,
+    pub name: String,
+    pub columns: Vec<Column>,
+    pub last_id: u64,
+    pub primary_key: Option<String>,
 }
 
 #[derive(Debug)]
 pub struct Column {
-    name: String,
-    data_type: DataType,
-    is_pk: bool,
-    is_unique: bool,
-    nullable: bool,
+    pub name: String,
+    pub data_type: DataType,
+    pub is_pk: bool,
+    pub is_unique: bool,
+    pub nullable: bool,
 }
 
 use std::fs::{File, OpenOptions};
 
 impl Table {
-    pub fn new(params: (String, Vec<ColumnDef>), database: &mut Database, mut file: &File) -> Result<Self, String> {
+    pub fn new(params: (String, Vec<ColumnDef>), database: &mut Database) -> Result<Self, String> {
         let mut table_string = String::from("table");
         table_string.push_str(&" ");
         table_string.push_str(&params.0);
@@ -76,17 +76,16 @@ impl Table {
                 nullable: !col.not_null,
             })
         }
-        println!("{:?}", table_string);
         table_string = table_string[0..table_string.len() - 2].to_string();
         table_string.push_str(&");");
-        println!("{:?}", table_string);
 
 
 
-   
+        let mut tables_pages = &database.file;
 
-        file.seek(SeekFrom::Start(4096)).unwrap();
-        file.write_all(table_string.as_bytes()).unwrap();
+        //tables_pages.seek(SeekFrom::Start(4096)).unwrap();
+        //tables_pages.write_all(table_string.as_bytes()).unwrap();
+        //tables_pages.write_all(&[0]).unwrap();
 
         Ok(Table {
             name: params.0,

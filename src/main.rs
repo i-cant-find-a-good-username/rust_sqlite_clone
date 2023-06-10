@@ -29,34 +29,35 @@ fn main() -> rustyline::Result<()> {
     }
 
     let mut database = if Path::new(&args[1]).exists() {
-        database::database::Database::new(args[1].to_string())
+        let mut file = OpenOptions::new()
+            .create(true)
+            .read(true)
+            .write(true)
+            .open(&args[1])
+            .unwrap();
+
+
+        // init file
+        if file.metadata().unwrap().len() == 0 {
+            // write database page
+            // add metadata from databases page
+            file.write_all(&[0; 4096]).unwrap();
+            // write tables page
+            file.write_all(&[255; 4096]).unwrap();
+            file.seek(SeekFrom::Start(0)).unwrap();
+            file.write_all(b"ilyes's database").unwrap();
+            // add metadata from table page
+        }
+        database::database::Database::new(args[1].to_string(), file)
     }else{
         println!("invalid database file");
         process::exit(1)
     };
 
-    let mut file = OpenOptions::new()
-        .read(true)
-        .write(true)
-        .open(&args[1])
-        .unwrap();
 
-    println!("{:?}", Path::new(&args[1]).metadata().unwrap().len());
 
-    // init file
-    if file.metadata().unwrap().len() == 0 {
-        // write database page
-        // add metadata from databases page
-        file.write_all(&[0; 4096]).unwrap();
-        // write tables page
-        file.write_all(&[255; 4096]).unwrap();
-        file.seek(SeekFrom::Start(0)).unwrap();
-        file.write_all(b"ilyes's database").unwrap();
-        // add metadata from table page
-    }
-    println!("{:?}", file.metadata().unwrap().len());
 
-    //let mut rl = DefaultEditor::new()?;
+
     let config = get_config();
     let helper = REPLHelper::default();
     let mut repl = Editor::with_config(config).unwrap();
@@ -80,7 +81,7 @@ fn main() -> rustyline::Result<()> {
                 match process_command(&command) {
                     CommandType::TypeSQL(cmd) => match cmd {
                         SQLCommand::Invalid(err) => println!("an error occured: {}", err),
-                        _ => match run_sql_command(command, &mut database, &file) {
+                        _ => match run_sql_command(command, &mut database) {
                             Ok(result) => println!("{}", result),
                             Err(err) => println!("an error occured: \n{}", err),
                         },

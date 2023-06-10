@@ -11,8 +11,28 @@ https://www.sqlite.org/lang_insert.html
 
 
 ////////////////////////////////////////// database page
+page size                  2 bytes
+locked                     1 bytes
+File change counter        4 bytes
+database pages             4 bytes
+page size                  2 bytes
+// btree data later
+
+
+
+/////////////////////////////////////////// tables page
+page is tables page                 1 byte // 1
 
 
 
 
-/////////////////////////////////////////// first tables page
+
+
+
+
+
+
+
+
+/////////////////////////////////////////// data pages
+page is tables page                 1 byte // 0

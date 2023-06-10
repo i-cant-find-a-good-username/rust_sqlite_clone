@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::{SeekFrom, Seek, Write};
 use std::path::Path;
 use crate::constants::{
     PAGE_SIZE
@@ -15,6 +17,7 @@ pub struct DatabaseMetaData {
 #[derive(Debug)]
 pub struct Database {
     pub name: String,
+    pub file: File,
     pub pager: pager::Pager,
     pub tables: HashMap<String, Table>,
 }
@@ -22,11 +25,13 @@ pub struct Database {
 
 
 impl Database {
-    pub fn new(name: String) -> Self {
+    pub fn new(name: String, file: File) -> Self {
         //  here we read it from the file
         //  temporary values
+        //  get database data and tables from the first pages in file and fill tables hashmap
         Database {
             name: name.clone(),
+            file: file,
             pager: pager::new(name),
             tables: HashMap::new(),
         }
@@ -40,6 +45,19 @@ impl Database {
         match self.tables.get(table_name) {
             Some(..) => true,
             None => false,
+        }
+    }
+
+    pub fn fetch_page(&self) {
+        
+    }
+
+    pub fn close_database(&mut self) {
+        for (i, page) in self.pager.pages.iter().enumerate() {
+            if (page != &[0; PAGE_SIZE]) {
+                self.file.seek(SeekFrom::Start((i * PAGE_SIZE) as u64)).unwrap();
+                self.file.write_all(&self.pager.pages[i]).unwrap();
+            }
         }
     }
 

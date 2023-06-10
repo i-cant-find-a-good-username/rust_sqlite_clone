@@ -1,5 +1,3 @@
-use std::fs::File;
-
 use crate::database::database::Database;
 use crate::parse;
 use crate::parse::parser::{Parser, ParserError, Statement};
@@ -31,8 +29,8 @@ impl SQLCommand {
     }
 }
 
-pub fn run_sql_command(command: String, database: &mut Database, file: &File) -> Result<String, String> {
-    match parse::parse(command.trim().to_string(), database, file) {
+pub fn run_sql_command(command: String, database: &mut Database) -> Result<String, String> {
+    match parse::parse(command.trim().to_string(), database) {
         Ok(msg) => return Ok(format!("{}", msg)),
         Err(msg) => return Err(format!("{}", msg)),
     };

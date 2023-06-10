@@ -9,7 +9,7 @@ use crate::database::{database::Database, table::Table};
 
 use self::parser::ColumnDef;
 
-pub fn parse(command: String, database: &mut Database, file: &File) -> Result<String, String> {
+pub fn parse(command: String, database: &mut Database) -> Result<String, String> {
     // this bclock is returned
     //parser::Parser::new(command);
     match parser::Parser::parse(command) {
@@ -39,7 +39,7 @@ pub fn parse(command: String, database: &mut Database, file: &File) -> Result<St
                         selection,
                     } => validate_delete((table_name, selection), database),
                     Statement::CreateTable { name, columns } => {
-                        validate_create((name, columns), database, file)
+                        validate_create((name, columns), database)
                     }
                     Statement::Drop { object_type, names } => {
                         validate_drop((object_type, names), database)
@@ -76,13 +76,12 @@ pub fn parse(command: String, database: &mut Database, file: &File) -> Result<St
 fn validate_create(
     params: (String, Vec<ColumnDef>),
     database: &mut Database,
-    file: &File
 ) -> Result<String, String> {
     match database.has_table(&params.0) {
         true => Err(String::from("table already exists")),
         false => {
             let table_name = params.0.to_string();
-            let table = Table::new(params, database, file)?;
+            let table = Table::new(params, database)?;
             table.show_table_structure();
             database.tables.insert(table_name, table);
             //println!("{:?}", database);
@@ -144,9 +143,40 @@ fn validate_insert(
     params: (String, bool, Option<Vec<String>>, Vec<String>),
     database: &mut Database,
 ) -> Result<String, String> {
-    match check_table_exist("table_name".to_string()) {
-        true => Ok(String::from("dazdazd")),
-        false => Err(String::from("table doesnt exist")),
+    match database.has_table(&params.0) {
+        false => Err(String::from("table doesnt exists")),
+        true => {
+            
+            let table = database.tables.get(&params.0).unwrap();
+            println!("{:?}", table);
+            println!("///////////////////////////////////////////{:?}", params);
+            if params.2 == None {
+                if params.2.unwrap().len() != table.columns.len() {
+                    return Err(String::from("invalid columns selection"))
+                }
+            }else{
+                for col in params.2.unwrap() {
+                    for col_valid in &table.columns {
+                        if col == col_valid.name {
+                            // col is valid
+                        }
+                    }
+                }
+                // check columns number and names
+            }
+            // validate cols
+
+            // validate primary keys
+
+            // validate nulls
+
+            // validate datatypes
+
+
+
+            // add data to pages
+            //let cur_page = database.pager.pages[2];
+            Ok(String::from("dazdazd"))}
     }
 }
 
