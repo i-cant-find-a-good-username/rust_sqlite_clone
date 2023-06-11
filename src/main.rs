@@ -35,6 +35,7 @@ fn main() -> rustyline::Result<()> {
             .write(true)
             .open(&args[1])
             .unwrap();
+        println!("{:?}", file.metadata().unwrap().len());
 
 
         // init file
@@ -53,6 +54,7 @@ fn main() -> rustyline::Result<()> {
         println!("invalid database file");
         process::exit(1)
     };
+
 
 
 

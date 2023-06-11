@@ -61,6 +61,27 @@ impl Database {
         }
     }
 
+
+    pub fn insert_row(&mut self, table: String, cols: Vec<String>, values: Vec<String>) {
+        println!("hello there here we add the row::::n, {:?}, {:?}, {:?}", self.tables.get(&table).unwrap(), cols, values);
+    }
+
+
+    pub fn add_table(&mut self, table_name: String, table: Table) {
+        self.tables.insert(table_name, table);
+        // create page for table
+        //
+        self.file.seek(SeekFrom::End(0)).unwrap();
+        self.file.write_all(&[100; 4096]).unwrap();
+    }
+
+
+
+
+
+
+    
+
     //pub fn get_table() {}
 }
 

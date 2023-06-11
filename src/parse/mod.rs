@@ -83,7 +83,7 @@ fn validate_create(
             let table_name = params.0.to_string();
             let table = Table::new(params, database)?;
             table.show_table_structure();
-            database.tables.insert(table_name, table);
+            database.add_table(table_name, table);
             //println!("{:?}", database);
             Ok(String::from("table created"))
         }
@@ -148,35 +148,45 @@ fn validate_insert(
         true => {
             
             let table = database.tables.get(&params.0).unwrap();
+
+
             println!("{:?}", table);
-            println!("///////////////////////////////////////////{:?}", params);
-            if params.2 == None {
-                if params.2.unwrap().len() != table.columns.len() {
-                    return Err(String::from("invalid columns selection"))
-                }
-            }else{
-                for col in params.2.unwrap() {
-                    for col_valid in &table.columns {
-                        if col == col_valid.name {
-                            // col is valid
-                        }
-                    }
-                }
-                // check columns number and names
-            }
-            // validate cols
+            println!("{:?}", params);
 
-            // validate primary keys
 
-            // validate nulls
+            //                                                           _   _       _           _     _                        _____    ___    ____     ___  
+            //    __ _   _   _    ___   _ __   _   _    __   __   __ _  | | (_)   __| |   __ _  | |_  (_)   ___    _ __        |_   _|  / _ \  |  _ \   / _ \ 
+            //   / _` | | | | |  / _ \ | '__| | | | |   \ \ / /  / _` | | | | |  / _` |  / _` | | __| | |  / _ \  | '_ \         | |   | | | | | | | | | | | |
+            //  | (_| | | |_| | |  __/ | |    | |_| |    \ V /  | (_| | | | | | | (_| | | (_| | | |_  | | | (_) | | | | |        | |   | |_| | | |_| | | |_| |
+            //   \__, |  \__,_|  \___| |_|     \__, |     \_/    \__,_| |_| |_|  \__,_|  \__,_|  \__| |_|  \___/  |_| |_|        |_|    \___/  |____/   \___/ 
+            //      |_|                        |___/                                                                                                       
 
-            // validate datatypes
+            let mut values: Vec<String> = Vec::new();
 
+            //match params.2 {
+            //    Some(cols) => {
+            //        // check all cols exist
+            //        for table_col in &table.columns {
+            //            for col in &cols {
+            //                if col != &table_col.name {
+            //                    return Err(String::from(format!("column {} doesnt exist", col)))
+            //                }
+            //            }
+            //        }
+            //   
+            //    },
+            //    None => {
+            //        
+            //    }
+            //}
+
+            database.insert_row(params.0, params.2.unwrap(), params.3);
 
 
             // add data to pages
             //let cur_page = database.pager.pages[2];
-            Ok(String::from("dazdazd"))}
+            Ok(String::from("dazdazd"))
+        }
     }
 }
 
@@ -192,7 +202,8 @@ fn validate_update(
         false => return Err(String::from("table doesnt exist")),
     }
 }
-// check table exist
+
+    // check table exist
 // validate selected cols if exist
 // validate values and thier types
 fn validate_delete(params: (String, Clause), database: &mut Database) -> Result<String, String> {

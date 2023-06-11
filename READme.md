@@ -22,6 +22,7 @@ page size                  2 bytes
 
 /////////////////////////////////////////// tables page
 page is tables page                 1 byte // 1
+table id                            4 byte
 
 
 
@@ -35,4 +36,5 @@ page is tables page                 1 byte // 1
 
 
 /////////////////////////////////////////// data pages
-page is tables page                 1 byte // 0
+page is tables page                 1 bytes // 0
+table it belongs to                 4 bytes

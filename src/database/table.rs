@@ -34,11 +34,11 @@ impl Table {
         table_string.push_str(&params.0);
         table_string.push_str(&"(");
         let mut cols: Vec<Column> = Vec::new();
-        let mut primary_key = String::from("");
+        let mut primary_key: Option<String> = None;
         for col in params.1 {
             if col.primary_key {
-                if primary_key == "" {
-                    primary_key = col.name.to_string();
+                if primary_key == None {
+                    primary_key = Some(col.name.to_string());
                 } else {
                     return Err(String::from("only 1 primary key allowed per table"));
                 }
@@ -81,21 +81,23 @@ impl Table {
 
 
 
-        let mut tables_pages = &database.file;
-
-        //tables_pages.seek(SeekFrom::Start(4096)).unwrap();
-        //tables_pages.write_all(table_string.as_bytes()).unwrap();
-        //tables_pages.write_all(&[0]).unwrap();
+        database.pager.add_table(table_string, &mut database.file);
 
         Ok(Table {
             name: params.0,
             columns: cols,
             last_id: 0,
-            primary_key: Some(primary_key),
+            primary_key: primary_key,
         })
     }
 
     pub fn show_table_structure(&self) {}
 
     pub fn get_table(&self) {}
+
+
+
+
+  
+
 }
