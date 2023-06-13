@@ -41,22 +41,23 @@ pub fn new(name: String) -> Pager{
     ff
 }
 impl Pager{
-    pub fn get_page(&mut self, page_number: usize, file: &mut File) -> Result<[u8; PAGE_SIZE], String>{
+    pub fn get_page(&mut self, page_number: usize, file: &mut File) -> bool{
         if page_number > MAX_PAGES {
             // erooooooooooooooor
-            return Err(String::from("page does not exist"))
+            return false
         }
-        let page = if self.pages[page_number] == [0; PAGE_SIZE]{
+        if self.pages[page_number] == [0; PAGE_SIZE]{
             file.seek(SeekFrom::Start((page_number * PAGE_SIZE) as u64)).unwrap();
             let mut buf = [0; PAGE_SIZE];
             file.read_exact(&mut buf).unwrap();
+
             self.pages[page_number] = buf;
-            return Ok(buf)
+            self.current_page = page_number;
+            self.page_cursor = 0;
         }else{
-            return Err(String::from("idk the error in pager"))
+            return true
         };
-
-
+        true
     }
 
 
@@ -69,12 +70,21 @@ impl Pager{
 
     pub fn add_table(&mut self, table_string: String, file: &mut File) {
         // do match for error here
-        let page = self.get_page(1, file).unwrap();
+        // goes to tables page
+        self.current_page = 1;
+        self.page_cursor = 0;
+
+
+        let page = self.get_page(1, file);
         println!("{:?}", table_string);
         println!("{:?}", table_string.len());
         for i in  0..PAGE_SIZE {
-            if page[i] == 0 && page[i+1] == 0 {
-
+            if self.pages[self.current_page][i] != 0 {
+                self.page_cursor += 1;
+            }else{
+                if self.pages[self.current_page][i+1] != 0 {
+                    self.page_cursor += 1;
+                }
             }
         }
     }
