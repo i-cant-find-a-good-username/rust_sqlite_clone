@@ -44,7 +44,7 @@ fn main() -> rustyline::Result<()> {
             // add metadata from databases page
             file.write_all(&[0; 4096]).unwrap();
             // write tables page
-            file.write_all(&[255; 4096]).unwrap();
+            file.write_all(&[200; 4096]).unwrap();
             file.seek(SeekFrom::Start(0)).unwrap();
             file.write_all(b"ilyes's database").unwrap();
             // add metadata from table page

@@ -7,10 +7,6 @@ https://www.sqlite.org/lang_insert.html
 
 
 <img height='' src='./logos/logo.svg'>
-<img height='' src='./logos/logo1.svg'>
-<img height='' src='./logos/logo2.svg'>
-<img height='' src='./logos/logo3.svg'>
-<img height='' src='./logos/logo4.svg'>
 
 
 
@@ -24,15 +20,11 @@ page size                  2 bytes
 
 
 
+
+
 /////////////////////////////////////////// tables page
 page is tables page                 1 byte // 1
 table id                            4 byte
-
-
-
-
-
-
 
 
 

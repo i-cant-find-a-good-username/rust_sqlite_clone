@@ -82,9 +82,9 @@ fn validate_create(
         false => {
             let table_name = params.0.to_string();
             let table = Table::new(params, database)?;
-            table.show_table_structure();
-            database.add_table(table_name, table);
-            //println!("{:?}", database);
+            database.pager.add_table(table.1, &mut database.file);
+            table.0.show_table_structure();
+            database.add_table(table_name, table.0).unwrap();
             Ok(String::from("table created"))
         }
     }

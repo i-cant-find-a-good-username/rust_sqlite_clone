@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{SeekFrom, Seek, Write};
+use std::io::{SeekFrom, Seek, Write, Read};
 use std::path::Path;
 use crate::constants::{
     PAGE_SIZE
@@ -31,8 +31,8 @@ impl Database {
         //  get database data and tables from the first pages in file and fill tables hashmap
         Database {
             name: name.clone(),
-            file: file,
-            pager: pager::new(name),
+            file: file.try_clone().unwrap(),
+            pager: pager::new(name, file),
             tables: HashMap::new(),
         }
     }
@@ -67,12 +67,20 @@ impl Database {
     }
 
 
-    pub fn add_table(&mut self, table_name: String, table: Table) {
+    pub fn add_table(&mut self, table_name: String, table: Table) -> Result<(), String> {
         self.tables.insert(table_name, table);
         // create page for table
         //
-        self.file.seek(SeekFrom::End(0)).unwrap();
-        self.file.write_all(&[100; 4096]).unwrap();
+        
+        self.file.seek(SeekFrom::Start(PAGE_SIZE.try_into().unwrap())).unwrap();
+        //let tables_page = self.file.read_exact(&mut [0; 4096]);
+
+        
+        // creates a new page
+        //self.file.seek(SeekFrom::End(0)).unwrap();
+        //self.file.write_all(&[1; 4096]).unwrap();
+
+        Ok(())
     }
 
 

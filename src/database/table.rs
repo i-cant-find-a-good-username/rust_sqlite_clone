@@ -1,9 +1,8 @@
-use std::collections::{HashMap, HashSet};
-use std::io::{Write, SeekFrom, Seek};
 
-use crate::parse::parser::{ColumnDef, DataType, Statement};
 
-use crate::btree;
+use crate::parse::parser::{ColumnDef, DataType};
+
+
 
 use super::database::Database;
 
@@ -28,7 +27,7 @@ pub struct Column {
 use std::fs::{File, OpenOptions};
 
 impl Table {
-    pub fn new(params: (String, Vec<ColumnDef>), database: &mut Database) -> Result<Self, String> {
+    pub fn new(params: (String, Vec<ColumnDef>), database: &mut Database) -> Result<(Self, String), String> {
         let mut table_string = String::from("table");
         table_string.push_str(&" ");
         table_string.push_str(&params.0);
@@ -81,15 +80,18 @@ impl Table {
 
 
 
-        database.pager.add_table(table_string, &mut database.file);
 
-        Ok(Table {
+        Ok((Table {
             name: params.0,
             columns: cols,
             last_id: 0,
             primary_key: primary_key,
-        })
+        }, table_string))
     }
+
+
+
+
 
     pub fn show_table_structure(&self) {}
 
