@@ -1,19 +1,18 @@
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{SeekFrom, Seek, Write, Read};
-use std::path::Path;
+use std::io::{SeekFrom, Seek};
 use crate::constants::{
     PAGE_SIZE
 };
 use super::table::Table;
 use super::pager;
 
-pub struct DatabaseMetaData {
-    page_size: u16,
-    pages_number: u32,
-    changes_counter: u32,
-    locked: bool,
-}
+//pub struct DatabaseMetaData {
+//    page_size: u16,
+//    pages_number: u32,
+//    changes_counter: u32,
+//    locked: bool,
+//}
 #[derive(Debug)]
 pub struct Database {
     pub name: String,
@@ -32,7 +31,7 @@ impl Database {
         Database {
             name: name.clone(),
             file: file.try_clone().unwrap(),
-            pager: pager::new(name, file),
+            pager: pager::new(file),
             tables: HashMap::new(),
         }
     }
@@ -54,10 +53,10 @@ impl Database {
 
     pub fn close_database(&mut self) {
         for (i, page) in self.pager.pages.iter().enumerate() {
-            if (page != &[0; PAGE_SIZE]) {
-                self.file.seek(SeekFrom::Start((i * PAGE_SIZE) as u64)).unwrap();
-                self.file.write_all(&self.pager.pages[i]).unwrap();
-            }
+            //if (page != &[0; PAGE_SIZE]) {
+            //    self.file.seek(SeekFrom::Start((i * PAGE_SIZE) as u64)).unwrap();
+            //    self.file.write_all(&self.pager.pages[i]).unwrap();
+            //}
         }
     }
 
