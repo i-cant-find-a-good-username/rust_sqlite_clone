@@ -1,4 +1,4 @@
-use std::{path::Path, fs::{File, OpenOptions}, io::{Seek, SeekFrom, Read}};
+use std::{path::Path, fs::{File, OpenOptions}, io::{Seek, SeekFrom, Read, Write}, collections::{HashMap, btree_map::Entry}};
 
 use crate::constants::{
     PAGE_SIZE,
@@ -11,7 +11,7 @@ use crate::constants::{
 pub struct Pager {
     // maybe a hashmap better
     // hashmap to decide which page is loaded
-    pub pages: [[u8; PAGE_SIZE]; MAX_PAGES],
+    pub pages: HashMap<usize, [u8; PAGE_SIZE]>,
     pub file_length: usize,
     pub file_desc: usize,
     pub current_page: usize,
@@ -22,14 +22,14 @@ pub struct Pager {
 
 pub fn new(name: String, mut file: File) -> Pager{
     let path = Path::new(&name);
-    let mut pages: [[u8; 4096]; MAX_PAGES] = [[0; PAGE_SIZE]; MAX_PAGES];
+    let mut pages = HashMap::new();
 
     let mut buffer: [u8; 4096] = [0; PAGE_SIZE];
     
     for i in 0..MAX_PAGES {
         file.seek(SeekFrom::Start((PAGE_SIZE*i).try_into().unwrap())).unwrap();
         match file.read_exact(&mut buffer){
-            Ok(_) => pages[i] = buffer,
+            Ok(_) => pages.insert(i, buffer),
             Err(_) => break
         };
     }
@@ -49,21 +49,24 @@ pub fn new(name: String, mut file: File) -> Pager{
 }
 impl Pager{
     pub fn get_page(&mut self, page_number: usize, file: &mut File) -> bool{
-        if page_number > MAX_PAGES {
-            // erooooooooooooooor
-            return false
-        }
-        if self.pages[page_number] == [0; PAGE_SIZE]{
-            file.seek(SeekFrom::Start((page_number * PAGE_SIZE) as u64)).unwrap();
-            let mut buf = [0; PAGE_SIZE];
-            file.read_exact(&mut buf).unwrap();
+        
+        let cache_miss  = self.pages.contains_key(&page_number);
+        if cache_miss {
 
-            self.pages[page_number] = buf;
-            self.current_page = page_number;
-            self.page_cursor = 0;
         }else{
-            return true
-        };
+            if self.pages.len() >= 100 {
+                // removes first element
+                let gg = self.pages.iter().next();
+                self.pages.remove(gg.unwrap().0);
+            }else {
+    
+            }
+        }
+        //let mut buffer: [u8; 4096] = [0; PAGE_SIZE];
+        //file.seek(SeekFrom::Start((PAGE_SIZE*i).try_into().unwrap())).unwrap();
+        //file.read_exact(&mut buffer)
+
+        
         true
     }
 
@@ -78,27 +81,39 @@ impl Pager{
     pub fn add_table(&mut self, table_string: String, file: &mut File) {
         // do match for error here
         // goes to tables page
-        let table_string_bytes = table_string.as_bytes();
-        let table_string_len = table_string_bytes.len();
 
         self.current_page = 1;
         self.page_cursor = 0;
 
 
-        let page = self.get_page(1, file);
-        println!("{:?}", table_string);
-        println!("{:?}", table_string.len());
-        for i in  0..PAGE_SIZE-1 {
-            if self.pages[self.current_page][i] != 0 {
-                self.page_cursor += 1;
-                println!("{:?}", self.page_cursor);
 
-            }else{
-                if self.pages[self.current_page][i+1] != 0 {
+        let mut affected_in_this_page = false;
+        while !affected_in_this_page{
+            for i in  0..PAGE_SIZE-1 {
+                if self.pages[self.current_page][i] == 0 {
+                    let arr: &[u8] = &self.pages[self.current_page][i..];
+                    let len = arr.len();
+                    if arr == vec![0; len].as_slice() {
+                        if len > table_string.len() {
+                            // to leaver null char between every 2 tables
+                            //if len == PAGE_SIZE {
+                            //    println!("{:?}", (self.current_page * PAGE_SIZE) +i);
+                            //    file.seek(SeekFrom::Start(((self.current_page * PAGE_SIZE) +i).try_into().unwrap())).unwrap();
+                            //}else{
+                            //    file.seek(SeekFrom::Start(((self.current_page * PAGE_SIZE) + i + 1).try_into().unwrap())).unwrap();
+                            //}
+                            file.seek(SeekFrom::Start(((self.current_page * PAGE_SIZE) +i).try_into().unwrap())).unwrap();
+                            file.write_all(table_string.as_bytes()).unwrap();
+                            affected_in_this_page = true;
+                        }
+                        break
+                    }
+                }
+                if affected_in_this_page {
                     self.page_cursor += 1;
-                    println!("{:?}", self.page_cursor);
                 }
             }
         }
+
     }
 }
