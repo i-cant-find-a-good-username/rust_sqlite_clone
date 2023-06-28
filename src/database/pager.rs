@@ -12,15 +12,15 @@ pub struct Pager {
     // maybe a hashmap better
     // hashmap to decide which page is loaded
     pub pages: HashMap<usize, [u8; PAGE_SIZE]>,
+    pub file: File,
     pub file_length: usize,
-    pub file_desc: usize,
     pub current_page: usize,
     pub page_cursor: usize,
 }
 
 
 
-pub fn new(mut file: File) -> Pager{
+fn init_pages(file: &mut File) -> Result<HashMap<usize, [u8; 4096]>, String> {
     let mut pages = HashMap::new();
 
     let mut buffer: [u8; 4096] = [0; PAGE_SIZE];
@@ -32,22 +32,25 @@ pub fn new(mut file: File) -> Pager{
             Err(_) => break
         };
     }
+    Ok(pages)
+}
 
-
-    let ff = Pager{
-        // uninitializes pages inited later
-        // act as cache
-        pages,
+pub fn new(mut file: File) -> Pager{
+    Pager{
+        pages: init_pages(&mut file).unwrap(),
         file_length: file.metadata().unwrap().len() as usize / PAGE_SIZE,
-        file_desc: 0,
+        file,
         current_page: 0,
         page_cursor: 0,
-    };
-    println!("{:?}", ff);
-    ff
+    }
 }
+
+
 impl Pager{
     pub fn get_page(&mut self, page_number: usize, file: &mut File) -> Result<[u8; PAGE_SIZE], String>{
+        self.current_page = page_number;
+        self.page_cursor = 0;
+        
         let cache_miss  = self.pages.contains_key(&page_number);
         if cache_miss {
             return Ok(self.pages.get(&page_number).unwrap().clone())
@@ -88,6 +91,12 @@ impl Pager{
         self.current_page = 1;
         self.page_cursor = 0;
 
+        if self.pages.get(&self.current_page).unwrap() == &[0; PAGE_SIZE] {
+            // add meta data to page
+            file.seek(SeekFrom::Start(((self.current_page * PAGE_SIZE)).try_into().unwrap())).unwrap();
+            file.write_all(table_string.as_bytes()).unwrap();
+        }
+
         let mut affected_in_this_page = false;
         while !affected_in_this_page{
             for i in  0..PAGE_SIZE-1 {
@@ -110,8 +119,10 @@ impl Pager{
                     }
                 }
                 if affected_in_this_page {
-                    // add page here
-                    self.current_page += 1;
+                    // advance the page or create a new one and add it to the cache
+                    // when pages are added self.pages needs to update indexes
+                    self.file_length += PAGE_SIZE;
+                    // self.current_page += 1;
                 }
             }
         }

@@ -5,3 +5,99 @@ create table users(
 );
 
 insert into users values('dude', 'password')
+
+
+
+
+create table users(
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+    id integer auto_increment,
+    username text not_null,
+    password text not_null
+);

@@ -23,6 +23,25 @@ page size                  2 bytes
 
 
 /////////////////////////////////////////// tables page
+16 bytes of metadata
+bytes 0 // 0 for database page 
+        // 1 for tables page
+bytes 1
+bytes 2
+bytes 3
+bytes 4
+bytes 5
+bytes 6
+bytes 7
+bytes 8
+bytes 9
+bytes 10
+bytes 11
+bytes 12
+bytes 13
+bytes 14
+bytes 15
+
 page is tables page                 1 byte // 1
 table id                            4 byte
 
