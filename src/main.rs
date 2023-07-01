@@ -1,6 +1,6 @@
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
-use std::{env, process, path::Path, fs::{File, OpenOptions}, io::{Write, SeekFrom, Seek, Read}};
+use std::{env, process, path::Path, fs::{OpenOptions}, io::{Write, SeekFrom, Seek}};
 
 mod btree;
 mod commands;
@@ -16,10 +16,11 @@ use commands::{
 };
 use rustyline_config::{get_config, REPLHelper};
 
-use crate::commands::sql_command::SQLCommand;
+use crate::{commands::sql_command::SQLCommand, constants::PAGE_SIZE};
 
 fn main() -> rustyline::Result<()> {
     let args: Vec<String> = env::args().collect();
+    println!("{:?}", args);
     if args.len() == 1 {
         println!("expected database file name");
         process::exit(1)
@@ -27,6 +28,15 @@ fn main() -> rustyline::Result<()> {
         println!("unexpected arguments");
         process::exit(1)
     }
+
+
+    if args[0] == "--help" || args[0] == "-h" {
+        println!("help");
+        process::exit(1)
+    }else if args[0] == "--version" || args[0] == "-v"{
+        println!("0.1.0");
+        process::exit(1)
+    } 
 
     let mut database = if Path::new(&args[1]).exists() {
         let mut file = OpenOptions::new()
@@ -48,6 +58,10 @@ fn main() -> rustyline::Result<()> {
             file.seek(SeekFrom::Start(0)).unwrap();
             file.write_all(b"ilyes's database").unwrap();
             // add metadata from table page
+        }
+        if file.metadata().unwrap().len() as usize % PAGE_SIZE != 0 {
+            println!("database file corrupted");
+            process::exit(1)
         }
         database::database::Database::new(args[1].to_string(), file)
     }else{
@@ -79,7 +93,7 @@ fn main() -> rustyline::Result<()> {
         let readline = repl.readline(&prompt);
         match readline {
             Ok(command) => {
-                repl.add_history_entry(command.as_str());
+                let _ = repl.add_history_entry(command.as_str());
                 match process_command(&command) {
                     CommandType::TypeSQL(cmd) => match cmd {
                         SQLCommand::Invalid(err) => println!("an error occured: {}", err),
@@ -109,8 +123,7 @@ fn main() -> rustyline::Result<()> {
         }
     }
 
-    #[cfg(feature = "with-file-history")]
-    rl.save_history("history.txt");
+    let _ = repl.save_history("history.txt");
 
     Ok(())
 }
