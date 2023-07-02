@@ -97,4 +97,22 @@ impl Database {
 //    phone_number integer
 //)
 
+
+//create table tegggggggfst(
+//    id integer primary_key,
+//    username text,
+//    email text,
+//    password text,
+//    age integer,
+//    phone_number integer,);
+//
+
 //insert into test (username ,email ,password ,age ,phone_number) values ('ilyes', 'ilyes@gmail.com', 'password', 22, 05555555);
+
+
+
+
+//create table ffaddad(
+//    id integer primary_key,
+//    ali text,
+//);
