@@ -24,7 +24,7 @@ pub struct Pager {
 fn init_pages(file: &mut File) -> Result<HashMap<usize, [u8; 4096]>, String> {
     let mut pages = HashMap::new();
 
-    let mut buffer: [u8; 4096] = [0; PAGE_SIZE];
+    let mut buffer = [0; PAGE_SIZE];
     
     for i in 0..MAX_PAGES {
         file.seek(SeekFrom::Start((PAGE_SIZE*i).try_into().unwrap())).unwrap();
@@ -50,13 +50,13 @@ pub fn new(mut file: File) -> Pager{
 
 
 impl Pager{
-    pub fn get_page(&mut self, page_number: usize) -> Result<[u8; PAGE_SIZE], String>{
+    pub fn get_page(&mut self, page_number: usize) -> Result<(), String>{
         self.current_page = page_number;
         self.page_cursor = 0;
         
         let cache_miss = self.pages.contains_key(&page_number);
         if cache_miss {
-            return Ok(self.pages.get(&page_number).unwrap().clone())
+            return Ok(())
         }else{
             // reads new page
             if self.pages.len() == MAX_PAGES {
@@ -74,7 +74,7 @@ impl Pager{
             match self.file.read_exact(&mut buffer) {
                 Ok(_) => {
                     self.pages.insert(page_number, buffer);
-                    Ok(buffer)
+                    Ok(())
                 },
                 Err(_) => Err(String::from("hello there")),
             }
@@ -124,6 +124,7 @@ impl Pager{
                         self.write_new_page(self.current_page).unwrap();
                     }
                     self.current_page += 1;
+                    self.page_cursor = 0;
                 }
             }
         }
@@ -132,7 +133,7 @@ impl Pager{
 
     fn next_page_is_tables_page(&mut self, position: usize) -> bool {
         let gotten_page = self.get_page(position).unwrap();
-        if gotten_page[0] == TABLES_PAGES_FIRST_BYTE {
+        if self.pages.get(&position).unwrap()[0] == TABLES_PAGES_FIRST_BYTE {
             true
         }else{
             false

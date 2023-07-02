@@ -1,3 +1,5 @@
+// 512 > PAGE_SIZE > 65536 && PAGE_SIZE = 2^n
+//!any other value will cause an error
 pub const PAGE_SIZE: usize = 4096;
 pub const MAX_PAGES: usize = 100;
 

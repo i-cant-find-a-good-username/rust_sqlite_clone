@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{SeekFrom, Seek};
+use std::io::{SeekFrom, Seek, Write};
 use crate::constants::{
     PAGE_SIZE
 };
@@ -36,9 +36,7 @@ impl Database {
         }
     }
 
-    pub fn read() {
-        // read andd create
-    }
+
 
     pub fn has_table(&self, table_name: &String) -> bool {
         match self.tables.get(table_name) {
@@ -47,18 +45,7 @@ impl Database {
         }
     }
 
-    pub fn fetch_page(&self) {
-        
-    }
 
-    pub fn close_database(&mut self) {
-        for (i, page) in self.pager.pages.iter().enumerate() {
-            //if (page != &[0; PAGE_SIZE]) {
-            //    self.file.seek(SeekFrom::Start((i * PAGE_SIZE) as u64)).unwrap();
-            //    self.file.write_all(&self.pager.pages[i]).unwrap();
-            //}
-        }
-    }
 
 
     pub fn insert_row(&mut self, table: String, cols: Vec<String>, values: Vec<String>) {
@@ -83,7 +70,16 @@ impl Database {
     }
 
 
+    // writes all the pages to thier position in the file
+    // should be affected after every insert, update, delete and on exit
+    pub fn save_data(&mut self) -> Result<(), String> {
+        for page in &self.pager.pages {
+            self.file.seek(SeekFrom::Start((PAGE_SIZE * page.0).try_into().unwrap())).unwrap();
+            self.file.write_all(page.1).unwrap();
+        }
 
+        Ok(())
+    }
 
 
 

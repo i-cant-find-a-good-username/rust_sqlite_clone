@@ -10,13 +10,18 @@ mod rustyline_config;
 mod table;
 mod user;
 mod constants;
+mod utils;
+use utils::{
+    init_file::{file_init},
+    int_byte_convert::{transform_u16_to_array_of_u8}
+};
 
 use commands::{
     meta_command::run_meta_command, process_command, sql_command::run_sql_command, CommandType,
 };
 use rustyline_config::{get_config, REPLHelper};
 
-use crate::{commands::sql_command::SQLCommand, constants::PAGE_SIZE};
+use crate::{commands::sql_command::SQLCommand, constants::PAGE_SIZE, utils::init_file};
 
 fn main() -> rustyline::Result<()> {
     let args: Vec<String> = env::args().collect();
@@ -31,7 +36,7 @@ fn main() -> rustyline::Result<()> {
 
 
     if args[0] == "--help" || args[0] == "-h" {
-        println!("help");
+        println!("help message");
         process::exit(1)
     }else if args[0] == "--version" || args[0] == "-v"{
         println!("0.1.0");
@@ -39,30 +44,8 @@ fn main() -> rustyline::Result<()> {
     } 
 
     let mut database = if Path::new(&args[1]).exists() {
-        let mut file = OpenOptions::new()
-            .create(true)
-            .read(true)
-            .write(true)
-            .open(&args[1])
-            .unwrap();
-        println!("{:?}", file.metadata().unwrap().len());
-
-
-        // init file
-        if file.metadata().unwrap().len() == 0 {
-            // write database page
-            // add metadata from databases page
-            file.write_all(&[0; 4096]).unwrap();
-            // write tables page
-            file.write_all(&[0; 4096]).unwrap();
-            file.seek(SeekFrom::Start(0)).unwrap();
-            file.write_all(b"ilyes's database").unwrap();
-            // add metadata from table page
-        }
-        if file.metadata().unwrap().len() as usize % PAGE_SIZE != 0 {
-            println!("database file corrupted");
-            process::exit(1)
-        }
+        // maybe match here
+        let file = file_init(&args[1]).unwrap();
         database::database::Database::new(args[1].to_string(), file)
     }else{
         println!("invalid database file");
