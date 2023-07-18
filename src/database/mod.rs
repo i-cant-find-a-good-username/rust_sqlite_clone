@@ -1,3 +1,3 @@
 pub mod database;
-pub mod table;
 pub mod pager;
+pub mod table;

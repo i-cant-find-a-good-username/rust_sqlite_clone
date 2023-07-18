@@ -1,27 +1,26 @@
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
-use std::{env, process, path::Path, fs::{OpenOptions}, io::{Write, SeekFrom, Seek}};
+use std::{
+    env,
+    path::Path,
+    process,
+};
 
 mod btree;
 mod commands;
+mod constants;
 mod database;
 mod parse;
 mod rustyline_config;
-mod table;
-mod user;
-mod constants;
 mod utils;
-use utils::{
-    init_file::{file_init},
-    int_byte_convert::{transform_u16_to_array_of_u8}
-};
+use utils::init_file::file_init;
 
 use commands::{
     meta_command::run_meta_command, process_command, sql_command::run_sql_command, CommandType,
 };
 use rustyline_config::{get_config, REPLHelper};
 
-use crate::{commands::sql_command::SQLCommand, constants::PAGE_SIZE, utils::init_file};
+use crate::commands::sql_command::SQLCommand;
 
 fn main() -> rustyline::Result<()> {
     let args: Vec<String> = env::args().collect();
@@ -34,28 +33,22 @@ fn main() -> rustyline::Result<()> {
         process::exit(1)
     }
 
-
     if args[0] == "--help" || args[0] == "-h" {
         println!("help message");
         process::exit(1)
-    }else if args[0] == "--version" || args[0] == "-v"{
+    } else if args[0] == "--version" || args[0] == "-v" {
         println!("0.1.0");
         process::exit(1)
-    } 
+    }
 
     let mut database = if Path::new(&args[1]).exists() {
         // maybe match here
         let file = file_init(&args[1]).unwrap();
         database::database::Database::new(args[1].to_string(), file)
-    }else{
+    } else {
         println!("invalid database file");
         process::exit(1)
     };
-
-
-
-
-
 
     let config = get_config();
     let helper = REPLHelper::default();
@@ -69,8 +62,6 @@ fn main() -> rustyline::Result<()> {
     let prompt = format!("RSQL> ");
     repl.helper_mut().expect("No helper found").colored_prompt =
         format!("\x1b[1;32m{}\x1b[0m", prompt);
-
-
 
     loop {
         let readline = repl.readline(&prompt);

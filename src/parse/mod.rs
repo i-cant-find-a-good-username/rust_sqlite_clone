@@ -62,17 +62,6 @@ pub fn parse(command: String, database: &mut Database) -> Result<String, String>
     Ok("result".to_string())
 }
 
-
-
-
-
-
-
-
-
-
-
-
 fn validate_create(
     params: (String, Vec<ColumnDef>),
     database: &mut Database,
@@ -89,32 +78,6 @@ fn validate_create(
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // check table exist
 // check if selected cols exist
@@ -146,20 +109,17 @@ fn validate_insert(
     match database.has_table(&params.0) {
         false => Err(String::from("table doesnt exists")),
         true => {
-            
             let table = database.tables.get(&params.0).unwrap();
-
 
             println!("{:?}", table);
             println!("{:?}", params);
 
-
-            //                                                           _   _       _           _     _                        _____    ___    ____     ___  
-            //    __ _   _   _    ___   _ __   _   _    __   __   __ _  | | (_)   __| |   __ _  | |_  (_)   ___    _ __        |_   _|  / _ \  |  _ \   / _ \ 
+            //                                                           _   _       _           _     _                        _____    ___    ____     ___
+            //    __ _   _   _    ___   _ __   _   _    __   __   __ _  | | (_)   __| |   __ _  | |_  (_)   ___    _ __        |_   _|  / _ \  |  _ \   / _ \
             //   / _` | | | | |  / _ \ | '__| | | | |   \ \ / /  / _` | | | | |  / _` |  / _` | | __| | |  / _ \  | '_ \         | |   | | | | | | | | | | | |
             //  | (_| | | |_| | |  __/ | |    | |_| |    \ V /  | (_| | | | | | | (_| | | (_| | | |_  | | | (_) | | | | |        | |   | |_| | | |_| | | |_| |
-            //   \__, |  \__,_|  \___| |_|     \__, |     \_/    \__,_| |_| |_|  \__,_|  \__,_|  \__| |_|  \___/  |_| |_|        |_|    \___/  |____/   \___/ 
-            //      |_|                        |___/                                                                                                       
+            //   \__, |  \__,_|  \___| |_|     \__, |     \_/    \__,_| |_| |_|  \__,_|  \__,_|  \__| |_|  \___/  |_| |_|        |_|    \___/  |____/   \___/
+            //      |_|                        |___/
 
             let mut values: Vec<String> = Vec::new();
 
@@ -173,15 +133,14 @@ fn validate_insert(
             //                }
             //            }
             //        }
-            //   
+            //
             //    },
             //    None => {
-            //        
+            //
             //    }
             //}
 
             database.insert_row(params.0, params.2.unwrap(), params.3);
-
 
             // add data to pages
             //let cur_page = database.pager.pages[2];
@@ -203,7 +162,7 @@ fn validate_update(
     }
 }
 
-    // check table exist
+// check table exist
 // validate selected cols if exist
 // validate values and thier types
 fn validate_delete(params: (String, Clause), database: &mut Database) -> Result<String, String> {
@@ -212,7 +171,6 @@ fn validate_delete(params: (String, Clause), database: &mut Database) -> Result<
         false => return Err(String::from("table doesnt exist")),
     }
 }
-
 
 fn validate_drop(params: (String, Vec<String>), database: &mut Database) -> Result<String, String> {
     match check_table_exist("table_name".to_string()) {

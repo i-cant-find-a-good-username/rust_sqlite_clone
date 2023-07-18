@@ -1,11 +1,9 @@
+use super::pager;
+use super::table::Table;
+use crate::constants::PAGE_SIZE;
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{SeekFrom, Seek, Write};
-use crate::constants::{
-    PAGE_SIZE
-};
-use super::table::Table;
-use super::pager;
+use std::io::{Seek, SeekFrom, Write};
 
 //pub struct DatabaseMetaData {
 //    page_size: u16,
@@ -21,8 +19,6 @@ pub struct Database {
     pub tables: HashMap<String, Table>,
 }
 
-
-
 impl Database {
     pub fn new(name: String, file: File) -> Self {
         //  here we read it from the file
@@ -36,8 +32,6 @@ impl Database {
         }
     }
 
-
-
     pub fn has_table(&self, table_name: &String) -> bool {
         match self.tables.get(table_name) {
             Some(..) => true,
@@ -45,23 +39,25 @@ impl Database {
         }
     }
 
-
-
-
     pub fn insert_row(&mut self, table: String, cols: Vec<String>, values: Vec<String>) {
-        println!("hello there here we add the row::::n, {:?}, {:?}, {:?}", self.tables.get(&table).unwrap(), cols, values);
+        println!(
+            "hello there here we add the row::::n, {:?}, {:?}, {:?}",
+            self.tables.get(&table).unwrap(),
+            cols,
+            values
+        );
     }
-
 
     pub fn add_table(&mut self, table_name: String, table: Table) -> Result<(), String> {
         self.tables.insert(table_name, table);
         // create page for table
         //
-        
-        self.file.seek(SeekFrom::Start(PAGE_SIZE.try_into().unwrap())).unwrap();
+
+        self.file
+            .seek(SeekFrom::Start(PAGE_SIZE.try_into().unwrap()))
+            .unwrap();
         //let tables_page = self.file.read_exact(&mut [0; 4096]);
 
-        
         // creates a new page
         //self.file.seek(SeekFrom::End(0)).unwrap();
         //self.file.write_all(&[1; 4096]).unwrap();
@@ -69,21 +65,18 @@ impl Database {
         Ok(())
     }
 
-
     // writes all the pages to thier position in the file
     // should be affected after every insert, update, delete and on exit
     pub fn save_data(&mut self) -> Result<(), String> {
         for page in &self.pager.pages {
-            self.file.seek(SeekFrom::Start((PAGE_SIZE * page.0).try_into().unwrap())).unwrap();
+            self.file
+                .seek(SeekFrom::Start((PAGE_SIZE * page.0).try_into().unwrap()))
+                .unwrap();
             self.file.write_all(page.1).unwrap();
         }
 
         Ok(())
     }
-
-
-
-    
 
     //pub fn get_table() {}
 }
@@ -97,7 +90,6 @@ impl Database {
 //    phone_number integer
 //)
 
-
 //create table tegggggggfst(
 //    id integer primary_key,
 //    username text,
@@ -108,9 +100,6 @@ impl Database {
 //
 
 //insert into test (username ,email ,password ,age ,phone_number) values ('ilyes', 'ilyes@gmail.com', 'password', 22, 05555555);
-
-
-
 
 //create table ffaddad(
 //    id integer primary_key,

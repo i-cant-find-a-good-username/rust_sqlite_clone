@@ -1,8 +1,4 @@
-
-
 use crate::parse::parser::{ColumnDef, DataType};
-
-
 
 use super::database::Database;
 
@@ -27,7 +23,10 @@ pub struct Column {
 use std::fs::{File, OpenOptions};
 
 impl Table {
-    pub fn new(params: (String, Vec<ColumnDef>), database: &mut Database) -> Result<(Self, String), String> {
+    pub fn new(
+        params: (String, Vec<ColumnDef>),
+        database: &mut Database,
+    ) -> Result<(Self, String), String> {
         let mut table_string = String::from("table");
         table_string.push_str(&" ");
         table_string.push_str(&params.0);
@@ -45,7 +44,7 @@ impl Table {
 
             table_string.push_str(&col.name);
             table_string.push_str(&" ");
-            match col.data_type{
+            match col.data_type {
                 DataType::Text => table_string.push_str(&"text"),
                 DataType::Integer => table_string.push_str(&"integer"),
                 DataType::Float => table_string.push_str(&"float"),
@@ -53,15 +52,15 @@ impl Table {
                 DataType::Null => table_string.push_str(&"null"),
             }
             table_string.push_str(&" ");
-            if col.primary_key{
+            if col.primary_key {
                 table_string.push_str(&"primary_key");
                 table_string.push_str(&" ");
             }
-            if col.unique{
+            if col.unique {
                 table_string.push_str(&"unique");
                 table_string.push_str(&" ");
             }
-            if col.not_null{
+            if col.not_null {
                 table_string.push_str(&"not_null");
                 table_string.push_str(&" ");
             }
@@ -78,28 +77,18 @@ impl Table {
         table_string = table_string[0..table_string.len() - 2].to_string();
         table_string.push_str(&");");
 
-
-
-
-        Ok((Table {
-            name: params.0,
-            columns: cols,
-            last_id: 0,
-            primary_key: primary_key,
-        }, table_string))
+        Ok((
+            Table {
+                name: params.0,
+                columns: cols,
+                last_id: 0,
+                primary_key: primary_key,
+            },
+            table_string,
+        ))
     }
-
-
-
-
 
     pub fn show_table_structure(&self) {}
 
     pub fn get_table(&self) {}
-
-
-
-
-  
-
 }

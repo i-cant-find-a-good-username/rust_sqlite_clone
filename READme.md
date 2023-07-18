@@ -53,3 +53,23 @@ table id                            4 byte
 /////////////////////////////////////////// data pages
 page is tables page                 1 bytes // 0
 table it belongs to                 4 bytes
+
+
+
+
+
+
+## features
+- [] terminal navigation (rustyline)
+- [] tokenizer
+- [] parser
+- [] data pagination
+- []
+- []
+- []
+- []
+- []
+- []
+- []
+- []
+- []
